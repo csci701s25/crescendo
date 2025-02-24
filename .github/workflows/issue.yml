@@ -1,0 +1,25 @@
+name: Issue Opened
+
+on:
+ issues:
+   types:
+     - opened
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  notify_slack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "Issue opened by ${{ github.actor }}! See <${{ github.server_url }}/${{ github.repository }}/issues|here> for more info."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()

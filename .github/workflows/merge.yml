@@ -1,0 +1,35 @@
+name: Merged Pull Request
+
+on:
+ push:
+  branches: main
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v3
+    - name: step 1
+      run: |
+        echo "running first step"
+    - name: step 2
+      run: |
+        echo "running second step"
+  notify_slack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "Pull Request merged by ${{ github.actor }}! See <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|here> for more info."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()

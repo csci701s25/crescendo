@@ -1,0 +1,18 @@
+name: Pull Request Checks
+on:
+  pull_request:
+    branches: main
+
+jobs:
+  build-lint-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v3
+    - name: step 1
+      run: |
+        echo "running first check"
+    - name: step 2
+      run: |
+        echo "running second check"
+    
