@@ -1,6 +1,9 @@
 # Summary
 
-## Extent of use:
+## Data Privacy:
+      //TODO
+
+## AI - Extent of use:
 
       A few lines +++
       Complete functions +
