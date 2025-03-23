@@ -1,4 +1,5 @@
 # [Project Title]
+
 ## Middlebury College, CSCI 701 (Senior Seminar, Spring 2025)
 
 This is your main project README which will contain instructions on how to build and run your project. You can delete and overwrite the contents of this README file at any point. We'll talk about what should be included in this file later in the semester.
@@ -14,7 +15,6 @@ This initial project template contains a few workflows (defined in `.github/work
 In general, your development workflow will be to open one (or more) Issues in any given week, write the code in the coming week, and then open and merge one (or more) PRs that address the corresponding Issue(s) from the previous week. When opening an Issue & Pull Request, please complete the relevant fields in the description (the templates are defined in the `.github` directory).
 
 Your first task is to create/review/merge a Pull Request that addresses Issue #1, which consists of creating a `CODE_OF_CONDUCT.md` file for your project.
-
 
 **React-Native**
 
@@ -115,3 +115,5 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+//trying git integrations
