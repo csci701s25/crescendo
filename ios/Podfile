@@ -4,6 +4,7 @@ require Pod::Executable.execute_command('node', ['-p',
     "react-native/scripts/react_native_pods.rb",
     {paths: [process.argv[1]]},
   )', __dir__]).strip
+  $RNMapboxMapsImpl = 'mapbox' #default implementation
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
@@ -15,6 +16,7 @@ if linkage != nil
 end
 
 target 'crescendo' do
+  pod 'rnmapbox-maps', :path => '../node_modules/@rnmapbox/maps'
   config = use_native_modules!
 
   use_react_native!(
