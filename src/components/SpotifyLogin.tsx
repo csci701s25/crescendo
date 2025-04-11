@@ -13,132 +13,106 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:3001';
 
-const SpotifyLogin = ({onLoginSuccess}) => {
+interface SpotifyLoginProps {
+  onLoginSuccess: (data: any) => void;
+}
+
+const SpotifyLogin: React.FC<SpotifyLoginProps> = ({onLoginSuccess}) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
 
-  // Update your SpotifyLogin.tsx useEffect for deep linking:
+  // Set up URL handler for when Spotify redirects back
   useEffect(() => {
-    console.log('Setting up deep linking handlers');
+    // Function to handle incoming URLs
+    const handleUrl = ({url}) => {
+      if (url && url.includes('auth/callback')) {
+        // Parse URL to get code and state
+        const urlParts = url.split('?');
+        if (urlParts.length < 2) return;
 
-    // Define a single handler for deep links
-    const handleDeepLink = async ({url}) => {
-      if (!url) return;
+        const queryString = urlParts[1];
+        const params = {};
 
-      console.log('Deep link received:', url);
-
-      if (url.includes('auth/callback')) {
-        setIsLoading(true);
-        try {
-          // Extract code and state from URL
-          const urlParts = url.split('?');
-          if (urlParts.length < 2) {
-            console.error('Invalid URL format:', url);
-            setError('Invalid redirect URL');
-            return;
+        queryString.split('&').forEach(pair => {
+          const [key, value] = pair.split('=');
+          if (key && value) {
+            params[key] = decodeURIComponent(value);
           }
+        });
 
-          const queryString = urlParts[1];
-          const params = new URLSearchParams(queryString);
-          const code = params.get('code');
-          const state = params.get('state');
+        const code = params['code'];
+        const state = params['state'];
 
-          console.log('Code and state extracted:', {
-            codeExists: !!code,
-            stateExists: !!state,
-          });
-
-          if (code && state) {
-            console.log('Exchanging code for token');
-            const response = await axios.get(
-              `${API_BASE_URL}/api/auth/spotify/callback`,
-              {
-                params: {code, state},
-              },
-            );
-
-            console.log('Response received:', response.status);
-
-            if (response.data && response.data.success) {
-              console.log('Authentication successful!');
-              setUser(response.data.data.profile);
-              onLoginSuccess(response.data.data);
-            } else {
-              console.error('Auth failed:', response.data);
-              setError(
-                'Authentication failed: ' +
-                  (response.data.error || 'Unknown error'),
-              );
-            }
-          } else {
-            setError('Missing code or state parameters');
-          }
-        } catch (err) {
-          console.error('Error handling auth callback:', err);
-          setError('Authentication failed. Please try again. ' + err.message);
-        } finally {
-          setIsLoading(false);
+        if (code && state) {
+          handleAuthCode(code, state);
         }
       }
     };
 
+    // Listen for URL events (when app is opened from Spotify redirect)
+    const subscription = Linking.addEventListener('url', handleUrl);
+
     // Check if app was opened with a URL
     Linking.getInitialURL().then(url => {
-      console.log('Initial URL:', url);
-      if (url) handleDeepLink({url});
+      if (url) handleUrl({url});
     });
 
-    // Listen for deep link events while the app is running
-    const subscription = Linking.addEventListener('url', handleDeepLink);
-
-    // Clean up
     return () => subscription.remove();
-  }, [onLoginSuccess]);
+  }, []);
 
-  const handleSpotifyLogin = async () => {
+  const handleAuthCode = async (code, state) => {
     setIsLoading(true);
-    setError(null);
 
     try {
-      console.log(
-        'Fetching auth URL from:',
-        `${API_BASE_URL}/api/auth/spotify/login`,
-      );
-      // Get the auth URL from your backend
+      // Call your backend to exchange the code for a token
       const response = await axios.get(
-        `${API_BASE_URL}/api/auth/spotify/login`,
+        `${API_BASE_URL}/api/auth/spotify/callback`,
+        {
+          params: {code, state},
+        },
       );
 
-      if (response.data && response.data.url) {
-        console.log('Opening auth URL:', response.data.url);
-        // Open the Spotify authorization page
-        await Linking.openURL(response.data.url);
+      if (response.data && response.data.success) {
+        const userName =
+          response.data.data.profile.display_name ||
+          response.data.data.profile.id;
+
+        // Show success alert
+        Alert.alert('Setup Complete', `Welcome, ${userName}!`);
+
+        onLoginSuccess(response.data.data);
       } else {
-        setError('Could not initiate login process');
+        Alert.alert('Error', 'Authentication failed');
       }
-    } catch (err) {
-      console.error('Error initiating Spotify login:', err);
-      setError('Failed to connect to authentication service');
+    } catch (error) {
+      console.error('Auth error:', error);
+      Alert.alert('Error', 'Failed to authenticate with Spotify');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (error) {
-    Alert.alert('Error', error);
-  }
+  const handleLogin = async () => {
+    setIsLoading(true);
 
-  if (user) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>
-          Welcome, {user.display_name || user.id}!
-        </Text>
-        <Text style={styles.subtitle}>You're now connected to Spotify</Text>
-      </View>
-    );
-  }
+    try {
+      // Get auth URL from your backend
+      const response = await axios.get(
+        `${API_BASE_URL}/api/auth/spotify/login`,
+      );
+
+      if (response.data && response.data.url) {
+        // Open the Spotify auth page in the device's browser
+        await Linking.openURL(response.data.url);
+      } else {
+        Alert.alert('Error', 'Could not start login process');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Failed to connect to authentication service');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -149,29 +123,13 @@ const SpotifyLogin = ({onLoginSuccess}) => {
 
       <TouchableOpacity
         style={styles.loginButton}
-        onPress={handleSpotifyLogin}
+        onPress={handleLogin}
         disabled={isLoading}>
         {isLoading ? (
           <ActivityIndicator color="#ffffff" />
         ) : (
           <Text style={styles.loginButtonText}>Login with Spotify</Text>
         )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.loginButton, {marginTop: 20, backgroundColor: '#666'}]}
-        onPress={() => {
-          const testUrl =
-            'crescendo://auth/callback?code=test_code&state=test_state';
-          console.log('Testing deep link with:', testUrl);
-          Linking.openURL(testUrl).catch(err => {
-            console.error('Failed to open test URL:', err);
-            Alert.alert(
-              'Deep Link Test',
-              'Failed to open the test URL: ' + err.message,
-            );
-          });
-        }}>
-        <Text style={styles.loginButtonText}>Test Deep Link</Text>
       </TouchableOpacity>
     </View>
   );
@@ -183,7 +141,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#121212', // Spotify-like dark background
+    backgroundColor: '#121212',
   },
   title: {
     fontSize: 24,
@@ -198,7 +156,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loginButton: {
-    backgroundColor: '#1DB954', // Spotify green
+    backgroundColor: '#1DB954',
     paddingVertical: 12,
     paddingHorizontal: 40,
     borderRadius: 25,

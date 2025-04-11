@@ -1,13 +1,18 @@
-// App.tsx
 import React, {useState} from 'react';
 import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
 import SpotifyLogin from './src/components/SpotifyLogin';
 
+interface AuthData {
+  profile: {
+    display_name?: string;
+    id: string;
+  };
+}
+
 function App(): React.JSX.Element {
-  const [authData, setAuthData] = useState(null);
+  const [authData, setAuthData] = useState<AuthData | null>(null);
 
   const handleLoginSuccess = data => {
-    console.log('Login successful:', data);
     setAuthData(data);
   };
 
@@ -33,7 +38,7 @@ function App(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212', // Spotify-like dark background
+    backgroundColor: '#121212',
   },
   container: {
     flex: 1,
