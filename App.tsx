@@ -1,64 +1,25 @@
-import React, {useState} from 'react';
-import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
-import SpotifyLogin from './src/components/SpotifyLogin';
+// App.tsx
+import React from 'react';
+import {StatusBar} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import WelcomeScreen from './src/components/WelcomeScreen';
+import MapScreen from './src/screens/MapScreen';
 
-interface AuthData {
-  profile: {
-    display_name?: string;
-    id: string;
-  };
-}
+const Stack = createNativeStackNavigator();
 
 function App(): React.JSX.Element {
-  const [authData, setAuthData] = useState<AuthData | null>(null);
-
-  const handleLoginSuccess = data => {
-    setAuthData(data);
-  };
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" />
-      {authData ? (
-        <View style={styles.container}>
-          <Text style={styles.welcomeText}>
-            Welcome, {authData.profile.display_name || authData.profile.id}!
-          </Text>
-          <Text style={styles.infoText}>
-            You're now connected to Crescendo.
-          </Text>
-        </View>
-      ) : (
-        <SpotifyLogin onLoginSuccess={handleLoginSuccess} />
-      )}
-    </SafeAreaView>
+    <NavigationContainer>
+      <StatusBar barStyle="dark-content" />
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{headerShown: false}}>
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="Map" component={MapScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#121212',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#121212',
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 10,
-  },
-  infoText: {
-    fontSize: 16,
-    color: '#b3b3b3',
-    marginBottom: 40,
-    textAlign: 'center',
-  },
-});
 
 export default App;
