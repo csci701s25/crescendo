@@ -10,6 +10,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/native-stack": "^6.11.0",
     "@supabase/supabase-js": "^2.49.3",
     "@types/express": "^5.0.1",
     "@types/node": "^22.13.13",
@@ -17,10 +19,14 @@
     "axios": "^1.8.4",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
+    "expo": "^52.0.46",
+    "expo-router": "^4.0.20",
     "express": "^4.21.2",
+    "lottie-react-native": "7.1.0",
     "pg": "^8.14.1",
     "react": "19.0.0",
     "react-native": "0.78.0",
+    "react-native-safe-area-context": "^5.4.0",
     "spotify-web-api-node": "^5.0.2",
     "ts-node": "^10.9.2"
   },
