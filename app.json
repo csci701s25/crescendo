@@ -1,4 +1,11 @@
 {
   "name": "crescendo",
-  "displayName": "crescendo"
+  "slug": "crescendo",
+  "scheme": "crescendo",
+  "extra": {
+    "eas": {
+      "projectId": "e2e70ad4-04a5-4f31-95fa-ef50435b8f2f"
+    }
+  },
+  "owner": "hedabeast9000"
 }
