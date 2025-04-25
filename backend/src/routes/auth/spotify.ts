@@ -4,12 +4,9 @@ import { SpotifyAuthController } from '../../controllers/auth';
 const router = Router();
 const spotifyController = new SpotifyAuthController();
 
-//Authentication Flow
-
-router.get('/login', spotifyController.getAuthUrl);
+// Auth Flow
 router.get('/callback', spotifyController.handleCallback);
 router.get('/profile', spotifyController.getUserProfile);
-
 router.post('/refresh', spotifyController.refreshAccessToken);
 
 export default router;

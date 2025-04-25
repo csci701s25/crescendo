@@ -1,11 +1,6 @@
 import SpotifyWebApi from 'spotify-web-api-node';
-import * as crypto from 'crypto';
-
 import { supabase } from '../../config/supabase';
 
-
-//refer to Spotify Web API Authorization Flow Diagram: https://developer.spotify.com/documentation/web-api/tutorials/code-flow
-//refer to spotify-web-api-node: https://github.com/thelinmichael/spotify-web-api-node?tab=readme-ov-file#usage
 
 interface SpotifyTokens {
   accessToken: string;
@@ -38,44 +33,9 @@ export class SpotifyAuthService {
 		});
     }
 
-    getAuthUrl(): string {
-        const scopes = [
-            //user info
-            'user-read-private', //account type - subscription details
-            'user-read-email',
-
-            //playback
-            'user-read-playback-state',
-            'user-modify-playback-state',
-            'user-read-currently-playing',
-
-            //listening history
-            'user-read-recently-played',
-            'user-top-read',
-
-            //access/modify library
-            'user-library-read',
-            'user-library-modify',
-
-            //access/modify playlists
-            'playlist-read-private',
-            'playlist-read-collaborative',
-            'playlist-modify-private',
-            'playlist-modify-public',
-
-            //access to follow
-            'user-follow-read',
-        ];
-
-        const state = crypto.randomBytes(8).toString('hex');
-
-        return this.spotifyApi.createAuthorizeURL(scopes, state);
-    }
-
 	/**
-	 * @returns tokens and expiration time; need tokens to 
+	 * @returns tokens and expiration time; need tokens to
 	 */
-
     async handleCallback(code: string): Promise<SpotifyAuthResponse> {
         const data = await this.spotifyApi.authorizationCodeGrant(code);
 
@@ -102,7 +62,7 @@ export class SpotifyAuthService {
 			profile_image_url: profile.images?.[0]?.url,
 			access_token: tokens.accessToken,
 			refresh_token: tokens.refreshToken,
-			token_expires_at: tokenExpiresAt.toISOString()
+			token_expires_at: tokenExpiresAt.toISOString(),
 		}, { onConflict: 'spotify_id' });
 
 		if (error) {
@@ -120,6 +80,10 @@ export class SpotifyAuthService {
         };
     }
 
+    // TODO: rework this to pull profile from DB - currently pulling from spotify; set up route for it too
+	/**
+	 * @returns user profile;
+	 */
 	async getUserProfile(accessToken: string) {
 		this.spotifyApi.setAccessToken(accessToken);
 		const { body } = await this.spotifyApi.getMe();
@@ -139,20 +103,4 @@ export class SpotifyAuthService {
 			expiresIn: data.body.expires_in,
 		};
 	}
-
-	async testDatabaseConnection() {
-        try {
-            const { data, error } = await supabase
-                .from('users')
-                .select('count(*)');
-
-            if (error) {
-				throw error;
-			}
-            return { success: true, data: data[1] };
-        } catch (error) {
-            console.error('Database connection test failed:', error);
-            throw error;
-        }
-    }
 }
