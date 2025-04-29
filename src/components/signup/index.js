@@ -26,7 +26,7 @@ const IMAGES = [
   require('../../../assets/signup/cres3.jpg'),
 ];
 
-const SignUp = () => {
+const SignUp = ({navigation}) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [nextImageIndex, setNextImageIndex] = useState(1);
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -52,6 +52,11 @@ const SignUp = () => {
 
     preloadImages();
   }, []);
+
+  const handleSkip = () => {
+    console.log('Navigating to MapView');
+    navigation.navigate('MapView');
+  };
 
   // Complete the transition and prepare for the next one
   const finishTransition = useCallback(() => {
@@ -228,6 +233,8 @@ const SignUp = () => {
         </Text>
       </View>
 
+      {/* Buttons at the
+      , side by side */}
       {/* Buttons at the bottom, side by side */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.joinButton}>
@@ -240,7 +247,7 @@ const SignUp = () => {
       </View>
 
       {/* Privacy link at the bottom*/}
-      <TouchableOpacity style={styles.privacyButton}>
+      <TouchableOpacity style={styles.privacyButton} onPress={handleSkip}>
         <Text style={styles.privacyText}>Skip for now</Text>
       </TouchableOpacity>
     </View>

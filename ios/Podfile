@@ -14,6 +14,9 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# Remove this line:
+# pod 'MapboxMaps', '~> 10.16.0'
+
 target 'crescendo' do
   config = use_native_modules!
 
@@ -31,5 +34,15 @@ target 'crescendo' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Add this code to ensure proper minimum iOS version for Mapbox
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Ensure iOS deployment target is at least 13.0 for Mapbox
+        if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 13.0
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+        end
+      end
+    end
   end
 end

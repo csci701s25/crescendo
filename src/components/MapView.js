@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+// src/components/MapView.js (updated with Settings button)
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -7,33 +8,94 @@ import {
   Platform,
   StatusBar,
   Dimensions,
-  Image,
+  TextInput,
+  Animated,
 } from 'react-native';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import Mapbox from '@rnmapbox/maps';
+// Import the SongIdentifier component
+import SongIdentifier from './SongIdentifier';
 
-// You'll need to replace this with your actual Mapbox token
-MapboxGL.setAccessToken(
+// so we don't have to use libraries for now
+const UserIcon = ({color = '#888', size = 18}) => (
+  <View style={{width: size, height: size}}>
+    <View style={[styles.svgIcon, {borderColor: color}]}>
+      <Text style={{color, fontSize: size * 0.7, fontWeight: '500'}}>👤</Text>
+    </View>
+  </View>
+);
+
+const MusicIcon = ({color = '#888', size = 18}) => (
+  <View style={{width: size, height: size}}>
+    <View style={[styles.svgIcon, {borderColor: color}]}>
+      <Text style={{color, fontSize: size * 0.7, fontWeight: '500'}}>🎵</Text>
+    </View>
+  </View>
+);
+
+const SearchIcon = ({color = '#888', size = 18}) => (
+  <View style={{width: size, height: size}}>
+    <View style={[styles.svgIcon, {borderColor: color}]}>
+      <Text style={{color, fontSize: size * 0.7, fontWeight: '500'}}>🔍</Text>
+    </View>
+  </View>
+);
+
+const SettingsIcon = ({color = '#888', size = 18}) => (
+  <View style={{width: size, height: size}}>
+    <View style={[styles.svgIcon, {borderColor: color}]}>
+      <Text style={{color, fontSize: size * 0.7, fontWeight: '500'}}>⚙️</Text>
+    </View>
+  </View>
+);
+
+// Set your Mapbox access token
+Mapbox.setAccessToken(
   'pk.eyJ1IjoiYW4xMDY1IiwiYSI6ImNtN25nbGIxNDAwemwyam9ob3NtdzdtcDkifQ.vCNExqx1YKqsExEOsUSYSw',
 );
 
 const {width, height} = Dimensions.get('window');
 const STATUSBAR_HEIGHT =
-  Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 0;
+  Platform.OS === 'ios' ? 47 : StatusBar.currentHeight || 0;
 
 const MapView = ({navigation}) => {
+  // Add navigation prop
   const [location, setLocation] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('artists'); // 'artists' or 'songs'
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const dropdownAnimation = useRef(new Animated.Value(0)).current;
+
+  // Toggle dropdown visibility with animation
+  const toggleDropdown = () => {
+    setIsDropdownVisible(!isDropdownVisible);
+    Animated.timing(dropdownAnimation, {
+      toValue: isDropdownVisible ? 0 : 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
 
   useEffect(() => {
     // Initialize map settings
-    MapboxGL.setTelemetryEnabled(false);
+    Mapbox.setTelemetryEnabled(false);
   }, []);
 
   const onMapReady = () => {
     setIsMapReady(true);
+  };
+
+  const selectSearchType = type => {
+    setSearchType(type);
+    toggleDropdown();
+  };
+
+  // Navigate to Settings screen
+  const goToSettings = () => {
+    navigation.navigate('Settings');
   };
 
   return (
@@ -44,51 +106,127 @@ const MapView = ({navigation}) => {
         barStyle="dark-content"
       />
 
-      {/* Header */}
-      <View style={[styles.header, {marginTop: STATUSBAR_HEIGHT}]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Crescendo Map</Text>
-      </View>
+      {/* Settings Button (Top right) */}
+      <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
+        <SettingsIcon color="#fff" size={24} />
+      </TouchableOpacity>
 
-      {/* MapBox Container */}
+      {/* Full Screen Map */}
       <View style={styles.mapContainer}>
-        <MapboxGL.MapView
+        <Mapbox.MapView
           style={styles.map}
-          styleURL={MapboxGL.StyleURL.Street}
-          zoomLevel={14}
+          styleURL={Mapbox.StyleURL.Street}
           onDidFinishLoadingMap={onMapReady}
-          compassEnabled
-          logoEnabled={false}>
-          <MapboxGL.Camera
+          logoEnabled={false}
+          attributionEnabled={false}
+          compassEnabled={true}
+          compassViewPosition={3} // bottom-right
+          compassViewMargins={{x: 16, y: 170}}>
+          <Mapbox.Camera
             zoomLevel={14}
             centerCoordinate={[location.longitude, location.latitude]}
             animationDuration={0}
           />
-
           {/* User Location Marker */}
-          <MapboxGL.PointAnnotation
+          <Mapbox.PointAnnotation
             id="userLocation"
             coordinate={[location.longitude, location.latitude]}>
             <View style={styles.markerContainer}>
               <View style={styles.marker} />
             </View>
-          </MapboxGL.PointAnnotation>
-        </MapboxGL.MapView>
+          </Mapbox.PointAnnotation>
+        </Mapbox.MapView>
       </View>
 
-      {/* Bottom Controls */}
-      <View style={styles.bottomControls}>
-        <TouchableOpacity style={styles.findButton}>
-          <Text style={styles.findButtonText}>Find Artists Near Me</Text>
-        </TouchableOpacity>
+      {/* Song Identifier - imported as a standalone component */}
+      <SongIdentifier />
 
-        <TouchableOpacity style={styles.profileButton}>
-          <Text style={styles.profileButtonText}>Complete Profile</Text>
-        </TouchableOpacity>
+      {/* Search Bar - Positioned at the bottom */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBarWrapper}>
+          {/* Integrated Search Bar with Type Selector */}
+          <View style={styles.searchBar}>
+            {/* Type Selector - integrated left side */}
+            <TouchableOpacity
+              style={styles.typeSelector}
+              onPress={toggleDropdown}>
+              <Text style={styles.typeSelectorText}>
+                {searchType === 'artists' ? 'Artists' : 'Songs'}
+              </Text>
+              {searchType === 'artists' ? (
+                <UserIcon color="#C04DEE" size={20} />
+              ) : (
+                <MusicIcon color="#C04DEE" size={20} />
+              )}
+            </TouchableOpacity>
+            <View style={styles.searchInputContainer}>
+              <SearchIcon size={24} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={`Search ${searchType}...`}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholderTextColor="#888"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Dropdown Menu - Animated */}
+        {isDropdownVisible && (
+          <Animated.View
+            style={[
+              styles.dropdownMenu,
+              {
+                opacity: dropdownAnimation,
+                transform: [
+                  {
+                    translateY: dropdownAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [10, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}>
+            <TouchableOpacity
+              style={[
+                styles.dropdownItem,
+                searchType === 'artists' && styles.activeDropdownItem,
+              ]}
+              onPress={() => selectSearchType('artists')}>
+              <UserIcon
+                color={searchType === 'artists' ? '#C04DEE' : '#888'}
+                size={24}
+              />
+              <Text
+                style={[
+                  styles.dropdownItemText,
+                  searchType === 'artists' && styles.activeDropdownItemText,
+                ]}>
+                Artists
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.dropdownItem,
+                searchType === 'songs' && styles.activeDropdownItem,
+              ]}
+              onPress={() => selectSearchType('songs')}>
+              <MusicIcon
+                color={searchType === 'songs' ? '#C04DEE' : '#888'}
+                size={24}
+              />
+              <Text
+                style={[
+                  styles.dropdownItemText,
+                  searchType === 'songs' && styles.activeDropdownItemText,
+                ]}>
+                Songs
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </View>
     </View>
   );
@@ -99,33 +237,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    height: 60,
-    zIndex: 10,
-    backgroundColor: 'white',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  backButton: {
-    padding: 10,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginLeft: 20,
-  },
   mapContainer: {
     flex: 1,
+    ...StyleSheet.absoluteFillObject,
   },
   map: {
     flex: 1,
@@ -137,49 +251,121 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   marker: {
-    width: 15,
-    height: 15,
-    borderRadius: 15,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: '#C04DEE',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  bottomControls: {
+  // Settings button
+  settingsButton: {
     position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 15,
-  },
-  findButton: {
-    backgroundColor: '#C04DEE', // Purple to match Crescendo theme
-    borderRadius: 30,
-    height: 50,
-    width: '100%',
+    top: STATUSBAR_HEIGHT + 10,
+    right: 16,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  findButtonText: {
-    color: '#fff',
+  // Search bar styling
+  searchContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 16,
+    right: 16,
+    zIndex: 10,
+  },
+  searchBarWrapper: {
+    width: '100%',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 25,
+    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#e0e0e0',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    width: 110,
+  },
+  typeSelectorText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    color: '#555',
+    fontWeight: '500',
+    marginRight: 10,
   },
-  profileButton: {
-    borderColor: '#C04DEE',
-    borderWidth: 1,
-    borderRadius: 30,
-    height: 50,
-    width: '100%',
-    justifyContent: 'center',
+  searchInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    paddingLeft: 15,
   },
-  profileButtonText: {
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: '#333',
+    padding: 0,
+    marginLeft: 10,
+  },
+  svgIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    bottom: 70,
+    left: 15,
+    right: 15,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  activeDropdownItem: {
+    backgroundColor: '#f8f0ff',
+  },
+  dropdownItemText: {
+    marginLeft: 15,
+    fontSize: 18,
+    color: '#666',
+  },
+  activeDropdownItemText: {
     color: '#C04DEE',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
 });
 

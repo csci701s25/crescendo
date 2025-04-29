@@ -1,10 +1,17 @@
+// App.tsx (updated with Settings)
 import React, {useState} from 'react';
-import {StyleSheet, SafeAreaView, LogBox, View} from 'react-native';
+import {StyleSheet, LogBox, View} from 'react-native';
 import SplashScreen from './src/components/splash';
 import SignUp from './src/components/signup';
+import MapView from './src/components/MapView';
+import Settings from './src/components/Settings';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 // Ignore non-critical warnings
 LogBox.ignoreLogs(['Animated: `useNativeDriver`']);
+
+const Stack = createNativeStackNavigator();
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -16,13 +23,23 @@ const App = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <NavigationContainer>
       {isLoading ? (
-        <SplashScreen onAnimationComplete={handleAnimationComplete} />
+        <View style={styles.container}>
+          <SplashScreen onAnimationComplete={handleAnimationComplete} />
+        </View>
       ) : (
-        <SignUp />
+        <Stack.Navigator
+          initialRouteName="SignUp"
+          screenOptions={{
+            headerShown: false,
+          }}>
+          <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen name="MapView" component={MapView} />
+          <Stack.Screen name="Settings" component={Settings} />
+        </Stack.Navigator>
       )}
-    </View>
+    </NavigationContainer>
   );
 };
 
