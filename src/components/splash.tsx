@@ -1,40 +1,32 @@
-import React, {useEffect, useState} from 'react';
-import {View, Image, StyleSheet} from 'react-native';
-import AnimationScreen from './animation';
+import React, {useEffect} from 'react';
+import {View, StyleSheet} from 'react-native';
+import VideoAnimation from './VideoAnimation';
 
 const SplashScreen = ({onAnimationComplete}) => {
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
-    // Simulate asset loading time
-    // In a real app, you would wait for actual assets to load
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    console.log('SplashScreen mounted');
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
+    // This is a backup timeout in case animation fails to trigger onAnimationComplete
+    const backupTimeout = setTimeout(() => {
+      console.log('SplashScreen backup timeout triggered');
       if (onAnimationComplete) {
         onAnimationComplete();
       }
-    }, 3000);
-    return () => clearTimeout(timer);
+    }, 6000); // 6 second backup
+
+    return () => clearTimeout(backupTimeout);
   }, [onAnimationComplete]);
+
+  const handleAnimationComplete = () => {
+    console.log('Animation completed, moving to signup');
+    if (onAnimationComplete) {
+      onAnimationComplete();
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {isLoading ? (
-        <Image
-          source={require('../../assets/animations/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      ) : (
-        <AnimationScreen />
-      )}
+      <VideoAnimation onAnimationComplete={handleAnimationComplete} />
     </View>
   );
 };
@@ -42,13 +34,10 @@ const SplashScreen = ({onAnimationComplete}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    transform: [{scaleX: 2}, {scaleY: 2}],
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-  },
-  logo: {
-    width: 200,
-    height: 200,
   },
 });
 
