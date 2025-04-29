@@ -132,7 +132,7 @@ A social music discovery app that enables users to explore music around them in 
 ---
 
 ## 5. Technical Specs
-**//TODO: Expand before sprint planning**
+** // TODO: Expand before sprint planning**
 - **Authentication**
 - **Map API + Location Access**
 - **Clustering Algorithms for Map**

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'; //import types
 import { SpotifyAuthService } from '../../services/auth/spotifyService';
 
+
 export class SpotifyAuthController {
     private spotifyService: SpotifyAuthService;
 
@@ -8,22 +9,15 @@ export class SpotifyAuthController {
         this.spotifyService = new SpotifyAuthService();
     }
 
-    getAuthUrl = async(req: Request, res: Response): Promise<void> => {
-        try {
-            const authUrl = this.spotifyService.getAuthUrl();
-            res.json({url: authUrl});
-        } catch (error) {
-            console.error('Failed to generate Spotify auth URL:', error);
-            res.status(500).json({error: 'Failed to generate Spotify auth URL'});
-        }
-    };
-
+    /**
+     * @returns true and new user data if spotify account is successfully linked
+     */
     handleCallback = async(req: Request, res: Response): Promise<void> => {
         try {
-            const { code, state } = req.query;
+            const { code } = req.query;
 
-            if(!code || typeof code !== 'string' || !state || typeof state !== 'string') {
-                res.status(400).json({ error: 'Valid authorization code and matching state required' });
+            if(!code || typeof code !== 'string') {
+                res.status(400).json({ error: 'Valid authorization code required' });
                 return;
             }
 
@@ -39,9 +33,12 @@ export class SpotifyAuthController {
         }
     };
 
+    /**
+     * @returns user profile; //TODO: rework this to pull profile from DB and set up route for it too
+     */
     getUserProfile = async(req: Request, res: Response): Promise<void> => {
         try {
-            //Authorization:'Bearer ' + accessToken (we're just pulling the accessToken)
+            // Authorization:'Bearer ' + accessToken (we're just pulling the accessToken)
             const accessToken = req.headers.authorization?.split(' ')[1];
             if(!accessToken) {
                 res.status(401).json({error: 'Unauthorized'});
@@ -55,6 +52,10 @@ export class SpotifyAuthController {
         }
     };
 
+    /**
+     * @returns true and new access token w/ expiration time if refresh token is valid
+     * NOTE: refresh token lasts forever, but access token expires every hour
+     */
     refreshAccessToken = async(req: Request, res: Response): Promise<void> => {
         try {
             const { refreshToken } = req.body; //used with post request

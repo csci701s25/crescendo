@@ -1,5 +1,5 @@
 
-//app relies on .env file contents so gotta load it first
+// App relies on .env file contents so gotta load it first
 import dotenv from 'dotenv';
 dotenv.config();
 
