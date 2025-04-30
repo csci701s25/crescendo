@@ -5,41 +5,38 @@
  * @format
  */
 
-import React from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context'; // For iOS notches
-
+import React, {useState} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
 import LoginScreen from './frontend/src/screens/LoginScreen';
+import SplashScreen from './frontend/src/components/intro/SplashScreen';
 
-import {
-  StatusBar,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-} from 'react-native/Libraries/NewAppScreen';
-
+import {StyleSheet, View} from 'react-native';
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const [isLoading, setIsLoading] = useState(true);
+  // Function to be called when splash animation completes
+  const handleAnimationComplete = () => {
+    console.log('App received animation complete signal');
+    setIsLoading(false);
   };
 
   return (
-    <SafeAreaProvider>
-      <View style={backgroundStyle}>
-        <StatusBar
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-          backgroundColor={backgroundStyle.backgroundColor}
-        />
-        {/* Display only the login screen */}
+    <NavigationContainer>
+      {isLoading ? (
+        <View style={styles.container}>
+          <SplashScreen onAnimationComplete={handleAnimationComplete} />
+        </View>
+      ) : (
         <LoginScreen />
-      </View>
-    </SafeAreaProvider>
+      )}
+    </NavigationContainer>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+});
 export default App;
