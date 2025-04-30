@@ -1,7 +1,14 @@
 # Summary
 
 ## Data Privacy:
-      // TODO
+- Allow users to choose their preferred visibility: off, close friends, followers, public
+- In public view and followers' view, users will never see markers with other users' locations.
+- Spotify asks for permissions when authenticating
+- Ask for permission when opening the browser for authentication and when asking for foreground location
+- Will construct a data notice outlining what data is being stored in our backend, what it could be possibly used for, and by who
+
+## Data Notice: 
+// TODO
 
 ## AI - Extent of use:
 
@@ -14,3 +21,4 @@
       Pasting errors is fine.
       GitHub Copilot is okay, but be careful.
       Check outgoing changes (responsibility of dev & PR reviewers).
+
