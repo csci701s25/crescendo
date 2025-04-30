@@ -21,7 +21,19 @@ In general, your development workflow will be to open one (or more) Issues in an
 
 # Tech Stack
 
-fill with Badges... 
+![Static Badge](https://img.shields.io/badge/React%20Native-%2361DBFB?logo=React&labelColor=black)
+![Static Badge](https://img.shields.io/badge/Expo-%23ffffff?logo=Expo&labelColor=black)
+![Static Badge](https://img.shields.io/badge/PostgreSQL-%23326790?logo=PostgreSQL&labelColor=D3D3D3)
+![Static Badge](https://img.shields.io/badge/Supabase-black?logo=Supabase&labelColor=black&color=%2340CE8D)
+![Static Badge](https://img.shields.io/badge/Express-black?logo=Express)
+![Static Badge](https://img.shields.io/badge/Node.js-red?logo=Node.js&labelColor=%23505050&color=%235E9F4E)
+
+
+
+
+
+
+
 
 # Abstract (or About/Description): foreword & summary.
 # Installing (or Building): how to build your project. How to deploy your project?
