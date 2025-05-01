@@ -7,12 +7,16 @@
 
 import React, {useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import LoginScreen from './frontend/src/screens/LoginScreen';
 import SplashScreen from './frontend/src/components/intro/SplashScreen';
+import MapScreen from './frontend/src/components/mapView/MapView';
 
 import {StyleSheet, View} from 'react-native';
 
-function App(): React.JSX.Element {
+const Stack = createNativeStackNavigator();
+
+function App() {
   const [isLoading, setIsLoading] = useState(true);
   // Function to be called when splash animation completes
   const handleAnimationComplete = () => {
@@ -27,7 +31,14 @@ function App(): React.JSX.Element {
           <SplashScreen onAnimationComplete={handleAnimationComplete} />
         </View>
       ) : (
-        <LoginScreen />
+        <Stack.Navigator
+          initialRouteName="LoginScreen"
+          screenOptions={{
+            headerShown: false,
+          }}>
+          <Stack.Screen name="LoginScreen" component={LoginScreen} />
+          <Stack.Screen name="MapScreen" component={MapScreen} />
+        </Stack.Navigator>
       )}
     </NavigationContainer>
   );
