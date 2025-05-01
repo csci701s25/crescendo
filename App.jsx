@@ -11,6 +11,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import LoginScreen from './frontend/src/screens/LoginScreen';
 import SplashScreen from './frontend/src/components/intro/SplashScreen';
 import MapScreen from './frontend/src/components/mapView/MapView';
+import Settings from './frontend/src/components/mapView/Settings';
 
 import {StyleSheet, View} from 'react-native';
 
@@ -38,6 +39,7 @@ function App() {
           }}>
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen name="MapScreen" component={MapScreen} />
+          <Stack.Screen name="Settings" component={Settings} />
         </Stack.Navigator>
       )}
     </NavigationContainer>
