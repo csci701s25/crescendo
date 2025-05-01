@@ -65,7 +65,7 @@ const Settings = ({navigation}) => {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, translateY]);
 
   // Handle text input changes
   const handleChange = (field, value) => {

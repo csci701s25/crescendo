@@ -7,7 +7,7 @@ Helpful Links:
 * [spotify-web-api-node](https://github.com/thelinmichael/spotify-web-api-node?tab=readme-ov-file#usage)
 
 
-![Auth Flow](https://developer-assets.spotifycdn.com/images/documentation/web-api/auth-code-flow.png)
+<img src="https://developer-assets.spotifycdn.com/images/documentation/web-api/auth-code-flow.png" width="300" />
 
 > Note: Change Client ID, Client Secret, and Redirect URI to match your Spotify App in .env file
 
