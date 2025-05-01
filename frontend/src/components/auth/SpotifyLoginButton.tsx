@@ -70,7 +70,7 @@ const SpotifyLoginButton = ({ onLoginSuccess }: SpotifyLoginButtonProps) => {
     path: 'auth/callback',
   });
   console.log('Redirect URI:', redirectUri);
-  
+
   // Handle authentication response - wait for code from Spotify, then use code to get tokens and profile
   const handleAuthCode = useCallback(async (code: string) => { // useCallback to prevent re-rendering since useEffect depends on this handler - https://www.reddit.com/r/reactjs/comments/snek8b/why_memoize_functions_with_reactusecallback/
     try {
