@@ -1,4 +1,4 @@
-/ src/components/Settings.js
+//src/components/Settings.js
 import React, {useState, useRef} from 'react';
 import {
   View,

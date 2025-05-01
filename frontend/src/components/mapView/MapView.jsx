@@ -13,6 +13,7 @@ import {
 import MapView, {Marker} from 'react-native-maps';
 import {MaterialIcons, FontAwesome, Ionicons} from '@expo/vector-icons';
 import SongIdentifier from './SongIdentifier';
+import UserProfileModal from './UserProfileModal.jsx';
 
 // Replace with icon components
 const UserIcon = ({color = '#888', size = 18}) => (
@@ -45,6 +46,8 @@ const MapScreen = ({navigation}) => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const dropdownAnimation = useRef(new Animated.Value(0)).current;
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
 
   // Toggle dropdown visibility with animation
   const toggleDropdown = () => {
@@ -99,6 +102,11 @@ const MapScreen = ({navigation}) => {
     },
   ];
 
+  const handleMarkerPress = (user) => {
+    setSelectedUser(user);
+    setIsProfileModalVisible(true);
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -141,7 +149,8 @@ const MapScreen = ({navigation}) => {
               key={listener.id}
               coordinate={listener.coordinate}
               title={listener.title}
-              description={`Listening to ${listener.song}`}>
+              description={`Listening to ${listener.song}`}
+              onPress={() => handleMarkerPress(listener)}>
               <View style={styles.listenerMarkerContainer}>
                 <View style={styles.listenerMarker}>
                   <MusicIcon color="#fff" size={16} />
@@ -151,6 +160,13 @@ const MapScreen = ({navigation}) => {
           ))}
         </MapView>
       </View>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        visible={isProfileModalVisible}
+        onClose={() => setIsProfileModalVisible(false)}
+        user={selectedUser}
+      />
 
       {/* Song Identifier - imported as a standalone component */}
       <SongIdentifier />
