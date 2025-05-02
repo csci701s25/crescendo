@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
     marginTop: -50, // Move video up by 50 points
   },
   video: {
-    width: width * 0.85, // Reduce to 85% of screen width
-    height: height * 0.85, // Reduce to 85% of screen height
+    width: width * 1.5, // Increased from 0.85 to 1.1 for more zoom
+    height: height * 1.5, // Increased from 0.85 to 1.1 for more zoom
   },
 });
 

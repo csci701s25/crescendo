@@ -27,8 +27,8 @@ const Settings = ({navigation}) => {
 
   // User data state
   const [userData, setUserData] = useState({
-    name: 'Sarah Johnson',
-    bio: 'Music enthusiast from San Francisco. I love discovering new artists.',
+    name: 'Ayman Khan',
+    bio: 'Music enthusiast from Bronx. I love discovering new artists.',
     followers: '1,452',
     artist: 'Frank Ocean',
     album: 'Blonde',
