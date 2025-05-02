@@ -14,6 +14,7 @@ import MapView, {Marker} from 'react-native-maps';
 import {MaterialIcons, FontAwesome, Ionicons} from '@expo/vector-icons';
 import SongIdentifier from './SongIdentifier';
 import UserProfileModal from './UserProfileModal.jsx';
+import listenersData from '../../data/listeners.json';
 
 // Replace with icon components
 const UserIcon = ({color = '#888', size = 18}) => (
@@ -41,23 +42,9 @@ const MapScreen = ({navigation}) => {
     latitude: 37.78825,
     longitude: -122.4324,
   });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState('artists'); // 'artists' or 'songs'
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
-  const dropdownAnimation = useRef(new Animated.Value(0)).current;
   const [selectedUser, setSelectedUser] = useState(null);
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
-
-  // Toggle dropdown visibility with animation
-  const toggleDropdown = () => {
-    setIsDropdownVisible(!isDropdownVisible);
-    Animated.timing(dropdownAnimation, {
-      toValue: isDropdownVisible ? 0 : 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
 
   useEffect(() => {
     // You could add location permissions and get user location here
@@ -68,41 +55,10 @@ const MapScreen = ({navigation}) => {
     setIsMapReady(true);
   };
 
-  const selectSearchType = type => {
-    setSearchType(type);
-    toggleDropdown();
-  };
+  // Use listeners from JSON
+  const musicListeners = listenersData;
 
-  // Navigate to Settings screen
-  const goToSettings = () => {
-    if (navigation) {
-      navigation.navigate('Settings');
-    }
-  };
-
-  // Mock data for music listeners on the map
-  const musicListeners = [
-    {
-      id: '1',
-      coordinate: {latitude: 37.78925, longitude: -122.4344},
-      title: 'John',
-      song: 'Blinding Lights',
-    },
-    {
-      id: '2',
-      coordinate: {latitude: 37.78625, longitude: -122.4304},
-      title: 'Emma',
-      song: 'As It Was',
-    },
-    {
-      id: '3',
-      coordinate: {latitude: 37.78725, longitude: -122.4364},
-      title: 'Mike',
-      song: 'Cruel Summer',
-    },
-  ];
-
-  const handleMarkerPress = (user) => {
+  const handleMarkerPress = user => {
     setSelectedUser(user);
     setIsProfileModalVisible(true);
   };
@@ -116,7 +72,13 @@ const MapScreen = ({navigation}) => {
       />
 
       {/* Settings Button (Top right) */}
-      <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
+      <TouchableOpacity
+        style={styles.settingsButton}
+        onPress={() => {
+          if (navigation) {
+            navigation.navigate('Settings');
+          }
+        }}>
         <SettingsIcon color="#fff" size={24} />
       </TouchableOpacity>
 
@@ -170,94 +132,6 @@ const MapScreen = ({navigation}) => {
 
       {/* Song Identifier - imported as a standalone component */}
       <SongIdentifier />
-
-      {/* Search Bar - Positioned at the bottom */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBarWrapper}>
-          {/* Integrated Search Bar with Type Selector */}
-          <View style={styles.searchBar}>
-            {/* Type Selector - integrated left side */}
-            <TouchableOpacity
-              style={styles.typeSelector}
-              onPress={toggleDropdown}>
-              <Text style={styles.typeSelectorText}>
-                {searchType === 'artists' ? 'Artists' : 'Songs'}
-              </Text>
-              {searchType === 'artists' ? (
-                <UserIcon color="#C04DEE" size={20} />
-              ) : (
-                <MusicIcon color="#C04DEE" size={20} />
-              )}
-            </TouchableOpacity>
-            <View style={styles.searchInputContainer}>
-              <SearchIcon size={24} color="#888" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={`Search ${searchType}...`}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholderTextColor="#888"
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Dropdown Menu - Animated */}
-        {isDropdownVisible && (
-          <Animated.View
-            style={[
-              styles.dropdownMenu,
-              {
-                opacity: dropdownAnimation,
-                transform: [
-                  {
-                    translateY: dropdownAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [10, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}>
-            <TouchableOpacity
-              style={[
-                styles.dropdownItem,
-                searchType === 'artists' && styles.activeDropdownItem,
-              ]}
-              onPress={() => selectSearchType('artists')}>
-              <UserIcon
-                color={searchType === 'artists' ? '#C04DEE' : '#888'}
-                size={24}
-              />
-              <Text
-                style={[
-                  styles.dropdownItemText,
-                  searchType === 'artists' && styles.activeDropdownItemText,
-                ]}>
-                Artists
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.dropdownItem,
-                searchType === 'songs' && styles.activeDropdownItem,
-              ]}
-              onPress={() => selectSearchType('songs')}>
-              <MusicIcon
-                color={searchType === 'songs' ? '#C04DEE' : '#888'}
-                size={24}
-              />
-              <Text
-                style={[
-                  styles.dropdownItemText,
-                  searchType === 'songs' && styles.activeDropdownItemText,
-                ]}>
-                Songs
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-        )}
-      </View>
     </View>
   );
 };
@@ -326,91 +200,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  // Search bar styling
-  searchContainer: {
-    position: 'absolute',
-    bottom: 40,
-    left: 16,
-    right: 16,
-    zIndex: 10,
-  },
-  searchBarWrapper: {
-    width: '100%',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 25,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  typeSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    width: 110,
-  },
-  typeSelectorText: {
-    fontSize: 16,
-    color: '#555',
-    fontWeight: '500',
-    marginRight: 10,
-  },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 15,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: '#333',
-    padding: 0,
-    marginLeft: 10,
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    bottom: 70,
-    left: 15,
-    right: 15,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  activeDropdownItem: {
-    backgroundColor: '#f8f0ff',
-  },
-  dropdownItemText: {
-    marginLeft: 15,
-    fontSize: 18,
-    color: '#666',
-  },
-  activeDropdownItemText: {
-    color: '#C04DEE',
-    fontWeight: '500',
   },
 });
 

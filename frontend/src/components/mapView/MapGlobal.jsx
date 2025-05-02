@@ -10,9 +10,11 @@ import {
   Animated,
   PanResponder,
   FlatList,
+  TextInput,
 } from 'react-native';
 import MapView, {Marker, Circle} from 'react-native-maps';
 import {MaterialIcons, Ionicons, FontAwesome} from '@expo/vector-icons';
+import listenersData from '../../data/listeners.json';
 
 // Icon components
 const MusicIcon = ({color = '#888', size = 18}) => (
@@ -26,6 +28,9 @@ const UserIcon = ({color = '#888', size = 18}) => (
 );
 const AddIcon = ({color = '#888', size = 18}) => (
   <Ionicons name="person-add" size={size} color={color} />
+);
+const SearchIcon = ({size = 24, color = '#888'}) => (
+  <Ionicons name="search" size={size} color={color} />
 );
 
 const {width, height} = Dimensions.get('window');
@@ -44,52 +49,29 @@ const MapGlobal = ({navigation}) => {
     longitude: -122.4324,
   });
 
-  // State for radius control
-  const [radius, setRadius] = useState(3); // Initial value, scale 1-6
-  const [circleRadius, setCircleRadius] = useState(9000); // Initial radius in meters
+  // Fixed radius (5km)
+  const circleRadius = 5000;
   const [isMapReady, setIsMapReady] = useState(false);
 
-  // Slider position state
-  const [sliderPosition, setSliderPosition] = useState(
-    ((radius - 1) * (sliderWidth - thumbSize)) / 5,
-  );
+  // Add search bar state and logic here
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('artists'); // 'artists' or 'songs'
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const dropdownAnimation = useRef(new Animated.Value(0)).current;
 
-  // Update when radius changes
-  useEffect(() => {
-    setSliderPosition(((radius - 1) * (sliderWidth - thumbSize)) / 5);
-  }, [radius]);
+  const toggleDropdown = () => {
+    setIsDropdownVisible(!isDropdownVisible);
+    Animated.timing(dropdownAnimation, {
+      toValue: isDropdownVisible ? 0 : 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
 
-  // Create pan responder for the slider
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {},
-      onPanResponderMove: (_, gestureState) => {
-        let newPosition = gestureState.moveX - 50; // Adjust based on container position
-
-        // Keep within bounds
-        if (newPosition < 0) newPosition = 0;
-        if (newPosition > sliderWidth - thumbSize)
-          newPosition = sliderWidth - thumbSize;
-
-        setSliderPosition(newPosition);
-
-        // Calculate new radius based on position
-        const segmentWidth = (sliderWidth - thumbSize) / 5;
-        const newRadius = Math.min(
-          Math.max(Math.round(newPosition / segmentWidth) + 1, 1),
-          6,
-        );
-
-        if (newRadius !== radius) {
-          // Update radius
-          updateRadius(newRadius);
-        }
-      },
-      onPanResponderRelease: () => {},
-    }),
-  ).current;
+  const selectSearchType = type => {
+    setSearchType(type);
+    toggleDropdown();
+  };
 
   // Handle map ready event
   const onMapReady = () => {
@@ -103,100 +85,8 @@ const MapGlobal = ({navigation}) => {
     }
   };
 
-  // Update circle radius based on slider value
-  const updateRadius = newRadius => {
-    setRadius(newRadius);
-    // Convert radius value (1-6) to an actual map radius (in meters)
-    setCircleRadius(newRadius * 3000); // 3km to 18km
-  };
-
-  // Calculate how many music symbols to show based on radius
-  const getMusicListeners = () => {
-    // Generate random music listeners around the center point
-    // Number of listeners increases with radius
-    const numberOfListeners = Math.min(Math.floor(radius), 6);
-    const listeners = [];
-
-    // Generate fixed positions based on radius value
-    for (let i = 0; i < numberOfListeners; i++) {
-      // Calculate position in a circular pattern around the center
-      const angle = (i / numberOfListeners) * Math.PI * 2;
-      const radiusFactor = circleRadius * 0.2; // Keep inside the circle
-
-      const lat = location.latitude + Math.cos(angle) * (radiusFactor / 111300);
-      const lng =
-        location.longitude +
-        Math.sin(angle) *
-          (radiusFactor /
-            (111300 * Math.cos(location.latitude * (Math.PI / 180))));
-
-      listeners.push({
-        id: `global-${i}`,
-        coordinate: {latitude: lat, longitude: lng},
-        title: `Music Listener ${i + 1}`,
-      });
-    }
-
-    return listeners;
-  };
-
-  // Get music listeners based on current radius
-  const musicListeners = getMusicListeners();
-
-  // Sample music listener profiles (one for each potential listener)
-  const [listenerProfiles] = useState([
-    {
-      id: 'global-0',
-      name: 'Ayman Khan',
-      bio: 'Music lover from Bronx. Always on the lookout for new indie bands.',
-      song: 'As It Was',
-      artist: 'Harry Styles',
-      image: null,
-    },
-    {
-      id: 'global-1',
-      name: 'Hedavam Solano',
-      bio: 'Electronic music producer and DJ. Sharing my favorite tracks while working on new material.',
-      song: 'Blinding Lights',
-      artist: 'The Weeknd',
-      image: null,
-    },
-    {
-      id: 'global-2',
-      name: 'An Adhikari',
-      bio: 'Guitaris with a love for rock.',
-      song: 'Bad Habit',
-      artist: 'Steve Lacy',
-      image: null,
-    },
-    {
-      id: 'global-3',
-      name: 'James Miller',
-      bio: 'Rock and metal enthusiast. Guitarist in a local band. Always on tour.',
-      song: 'Master of Puppets',
-      artist: 'Metallica',
-      image: null,
-    },
-    {
-      id: 'global-4',
-      name: 'Olivia Parker',
-      bio: 'Jazz vocalist and vinyl collector. I appreciate the classics and modern interpretations.',
-      song: 'Take Five',
-      artist: 'Dave Brubeck',
-      image: null,
-    },
-    {
-      id: 'global-5',
-      name: 'Liam Johnson',
-      bio: 'Hip hop producer and beatmaker. Sharing my inspirations and current projects.',
-      song: 'SICKO MODE',
-      artist: 'Travis Scott',
-      image: null,
-    },
-  ]);
-
-  // Get visible listeners based on radius
-  const visibleProfiles = listenerProfiles.slice(0, musicListeners.length);
+  // Use listeners from JSON
+  const musicListeners = listenersData;
 
   return (
     <View style={styles.container}>
@@ -207,37 +97,92 @@ const MapGlobal = ({navigation}) => {
       />
 
       {/* Settings Button (Top right) */}
-      <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
+      {/* <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
         <SettingsIcon color="#fff" size={24} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
-      {/* Custom Radius Slider (Top) */}
-      <View style={styles.radiusContainer}>
-        <Text style={styles.radiusLabel}>
-          Radius: {Math.round(circleRadius / 1000)} km
-        </Text>
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderTrack}>
-            <View
-              style={[
-                styles.sliderFill,
-                {width: sliderPosition + thumbSize / 2},
-              ]}
-            />
-          </View>
-          <Animated.View
-            style={[styles.sliderThumb, {left: sliderPosition}]}
-            {...panResponder.panHandlers}
-          />
-          <View style={styles.sliderLabels}>
-            <Text style={styles.sliderLabelText}>1</Text>
-            <Text style={styles.sliderLabelText}>2</Text>
-            <Text style={styles.sliderLabelText}>3</Text>
-            <Text style={styles.sliderLabelText}>4</Text>
-            <Text style={styles.sliderLabelText}>5</Text>
-            <Text style={styles.sliderLabelText}>6</Text>
+      {/* SEARCH BAR - TOP */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBarWrapper}>
+          <View style={styles.searchBar}>
+            <TouchableOpacity
+              style={styles.typeSelector}
+              onPress={toggleDropdown}>
+              <Text style={styles.typeSelectorText}>
+                {searchType === 'artists' ? 'Artists' : 'Songs'}
+              </Text>
+              {searchType === 'artists' ? (
+                <UserIcon color="#C04DEE" size={20} />
+              ) : (
+                <MusicIcon color="#C04DEE" size={20} />
+              )}
+            </TouchableOpacity>
+            <View style={styles.searchInputContainer}>
+              <SearchIcon size={24} color="#888" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={`Search ${searchType}...`}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholderTextColor="#888"
+              />
+            </View>
           </View>
         </View>
+        {isDropdownVisible && (
+          <Animated.View
+            style={[
+              styles.dropdownMenu,
+              {
+                opacity: dropdownAnimation,
+                transform: [
+                  {
+                    translateY: dropdownAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [10, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}>
+            <TouchableOpacity
+              style={[
+                styles.dropdownItem,
+                searchType === 'artists' && styles.activeDropdownItem,
+              ]}
+              onPress={() => selectSearchType('artists')}>
+              <UserIcon
+                color={searchType === 'artists' ? '#C04DEE' : '#888'}
+                size={24}
+              />
+              <Text
+                style={[
+                  styles.dropdownItemText,
+                  searchType === 'artists' && styles.activeDropdownItemText,
+                ]}>
+                Artists
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.dropdownItem,
+                searchType === 'songs' && styles.activeDropdownItem,
+              ]}
+              onPress={() => selectSearchType('songs')}>
+              <MusicIcon
+                color={searchType === 'songs' ? '#C04DEE' : '#888'}
+                size={24}
+              />
+              <Text
+                style={[
+                  styles.dropdownItemText,
+                  searchType === 'songs' && styles.activeDropdownItemText,
+                ]}>
+                Songs
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </View>
 
       {/* Full Screen Map */}
@@ -261,7 +206,7 @@ const MapGlobal = ({navigation}) => {
             </View>
           </Marker>
 
-          {/* Circle showing radius */}
+          {/* Circle showing fixed radius */}
           <Circle
             center={location}
             radius={circleRadius}
@@ -270,12 +215,13 @@ const MapGlobal = ({navigation}) => {
             strokeWidth={2}
           />
 
-          {/* Display music listeners */}
+          {/* Display music listeners from JSON */}
           {musicListeners.map(listener => (
             <Marker
               key={listener.id}
               coordinate={listener.coordinate}
-              title={listener.title}>
+              title={listener.title}
+              description={`Listening to ${listener.song}`}>
               <View style={styles.listenerMarkerContainer}>
                 <View style={styles.listenerMarker}>
                   <MusicIcon color="#fff" size={16} />
@@ -291,7 +237,7 @@ const MapGlobal = ({navigation}) => {
         <View style={styles.profilesContainer}>
           <FlatList
             horizontal
-            data={visibleProfiles}
+            data={musicListeners}
             keyExtractor={item => item.id}
             showsHorizontalScrollIndicator={false}
             snapToInterval={300}
@@ -304,7 +250,7 @@ const MapGlobal = ({navigation}) => {
                     <UserIcon color={PURPLE} size={30} />
                   </View>
                   <View style={styles.profileInfo}>
-                    <Text style={styles.profileName}>{item.name}</Text>
+                    <Text style={styles.profileName}>{item.username}</Text>
                     <Text style={styles.profileBio} numberOfLines={2}>
                       {item.bio}
                     </Text>
@@ -320,7 +266,6 @@ const MapGlobal = ({navigation}) => {
                       CURRENTLY LISTENING TO
                     </Text>
                     <Text style={styles.listeningSong}>{item.song}</Text>
-                    <Text style={styles.listeningArtist}>{item.artist}</Text>
                   </View>
                 </View>
 
@@ -407,72 +352,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  radiusContainer: {
-    position: 'absolute',
-    top: STATUSBAR_HEIGHT + 10,
-    left: 16,
-    right: 76, // Make room for settings button
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 15,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  radiusLabel: {
-    fontSize: 12,
-    color: '#555',
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  sliderContainer: {
-    height: 40,
-    justifyContent: 'center',
-    width: sliderWidth,
-    alignSelf: 'center',
-  },
-  sliderTrack: {
-    height: 6,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 3,
-    width: sliderWidth,
-  },
-  sliderFill: {
-    height: 6,
-    backgroundColor: PURPLE,
-    borderRadius: 3,
-  },
-  sliderThumb: {
-    width: thumbSize,
-    height: thumbSize,
-    borderRadius: thumbSize / 2,
-    backgroundColor: PURPLE,
-    position: 'absolute',
-    top: 8,
-    marginTop: -thumbSize / 2 + 3,
-    borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  sliderLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: sliderWidth,
-    marginTop: 5,
-  },
-  sliderLabelText: {
-    fontSize: 10,
-    color: '#555',
-    width: 16,
-    textAlign: 'center',
-  },
   profilesContainer: {
     position: 'absolute',
     bottom: 20,
@@ -555,10 +434,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
-  listeningArtist: {
-    fontSize: 12,
-    color: '#666',
-  },
   addFriendButton: {
     flexDirection: 'row',
     backgroundColor: PURPLE,
@@ -592,6 +467,90 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  searchContainer: {
+    position: 'absolute',
+    top: STATUSBAR_HEIGHT + 20,
+    left: 16,
+    right: 16,
+    zIndex: 20,
+  },
+  searchBarWrapper: {
+    width: '100%',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 25,
+    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#e0e0e0',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    width: 110,
+  },
+  typeSelectorText: {
+    fontSize: 16,
+    color: '#555',
+    fontWeight: '500',
+    marginRight: 10,
+  },
+  searchInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 15,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: '#333',
+    padding: 0,
+    marginLeft: 10,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  activeDropdownItem: {
+    backgroundColor: '#f8f0ff',
+  },
+  dropdownItemText: {
+    marginLeft: 15,
+    fontSize: 18,
+    color: '#666',
+  },
+  activeDropdownItemText: {
+    color: '#C04DEE',
+    fontWeight: '500',
   },
 });
 

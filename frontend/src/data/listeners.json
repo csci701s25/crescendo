@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "username": "John",
+    "coordinate": {"latitude": 37.78925, "longitude": -122.4344},
+    "title": "John",
+    "song": "Blinding Lights",
+    "friends": ["2", "3"]
+  },
+  {
+    "id": "2",
+    "username": "Emma",
+    "coordinate": {"latitude": 37.78625, "longitude": -122.4304},
+    "title": "Emma",
+    "song": "As It Was",
+    "friends": ["1"]
+  },
+  {
+    "id": "3",
+    "username": "Mike",
+    "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
+    "title": "Mike",
+    "song": "Cruel Summer",
+    "friends": ["1"]
+  }
+]
