@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, StyleSheet, Modal, TouchableOpacity} from 'react-native';
 
 const PURPLE = '#C04DEE';
 const DARK_BG = '#141417';
@@ -26,7 +20,9 @@ const UserProfileModal = ({visible, onClose, user}) => {
           {/* Profile Header */}
           <View style={styles.profileHeader}>
             <View style={styles.profileImagePlaceholder}>
-              <Text style={styles.profileInitial}>{user?.title?.[0] || '?'}</Text>
+              <Text style={styles.profileInitial}>
+                {user?.title?.[0] || '?'}
+              </Text>
             </View>
             <Text style={styles.userName}>{user?.title || 'Unknown User'}</Text>
             <Text style={styles.currentSong}>
@@ -112,4 +108,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserProfileModal; 
+export default UserProfileModal;

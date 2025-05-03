@@ -1,5 +1,4 @@
-//src/components/Settings.js
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,16 +11,24 @@ import {
   Modal,
   Animated,
   Platform,
+  Dimensions,
+  Easing,
 } from 'react-native';
 
+const {width, height} = Dimensions.get('window');
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 0;
 const PURPLE = '#C04DEE';
-const DARK_BG = '#141417';
-const CARD_BG = '#18191C';
+const CARD_BG = 'rgba(255, 255, 255, 0.9)';
+const SECTION_BG = 'rgba(255, 255, 255, 0.7)';
 
 const Settings = ({navigation}) => {
-  // Animated values
+  // Animation values for circles
+  const circleAnim1 = useRef(new Animated.Value(0)).current;
+  const circleAnim2 = useRef(new Animated.Value(0)).current;
+  const circleAnim3 = useRef(new Animated.Value(0)).current;
+
+  // Card animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
 
@@ -52,7 +59,8 @@ const Settings = ({navigation}) => {
   const visibilityOptions = ['Everyone', 'Friends only', 'Nobody'];
 
   // Animation on component mount
-  React.useEffect(() => {
+  useEffect(() => {
+    // Card entrance animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -65,6 +73,34 @@ const Settings = ({navigation}) => {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Background circles animation
+    Animated.loop(
+      Animated.timing(circleAnim1, {
+        toValue: 1,
+        duration: 20000, // 20 seconds for one full cycle
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
+    ).start();
+
+    Animated.loop(
+      Animated.timing(circleAnim2, {
+        toValue: 1,
+        duration: 25000, // 25 seconds for one full cycle
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
+    ).start();
+
+    Animated.loop(
+      Animated.timing(circleAnim3, {
+        toValue: 1,
+        duration: 18000, // 18 seconds for one full cycle
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
+    ).start();
   }, [fadeAnim, translateY]);
 
   // Handle text input changes
@@ -92,16 +128,40 @@ const Settings = ({navigation}) => {
     setVisibilityModalVisible(false);
   };
 
+  // Create moving background circles
+  const createLoopingCircles = (animValue, baseStyle, topOffset = 0) => {
+    const translateY = animValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [topOffset, topOffset + height],
+    });
+
+    return (
+      <>
+        <Animated.View style={[baseStyle, {transform: [{translateY}]}]} />
+        <Animated.View
+          style={[
+            baseStyle,
+            {top: -height + topOffset, transform: [{translateY}]},
+          ]}
+        />
+      </>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
         translucent
         backgroundColor="transparent"
-        barStyle="light-content"
+        barStyle="dark-content"
       />
 
-      {/* Gradient Top Element */}
-      <View style={styles.gradientTop} />
+      {/* Animated background circles */}
+      <View style={styles.backgroundContainer}>
+        {createLoopingCircles(circleAnim1, styles.mintCircle, -width * 0.2)}
+        {createLoopingCircles(circleAnim2, styles.creamCircle, height * 0.05)}
+        {createLoopingCircles(circleAnim3, styles.pinkCircle, height * 0.6)}
+      </View>
 
       {/* Header */}
       <View style={[styles.header, {marginTop: STATUSBAR_HEIGHT}]}>
@@ -125,10 +185,12 @@ const Settings = ({navigation}) => {
         <View style={styles.card}>
           {/* Profile Image and Name Section */}
           <View style={styles.profileSection}>
-            <Image
-              source={require('../../../assets/images/1.jpg')}
-              style={styles.profileImage}
-            />
+            <View style={styles.profileImageWrapper}>
+              <Image
+                source={require('../../../assets/images/1.jpg')}
+                style={styles.profileImage}
+              />
+            </View>
 
             <View style={styles.nameContainer}>
               {isEditing.name ? (
@@ -151,7 +213,7 @@ const Settings = ({navigation}) => {
           </View>
 
           {/* Bio Section */}
-          <View style={styles.bioSection}>
+          <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionLabel}>Bio</Text>
               <TouchableOpacity onPress={() => toggleEdit('bio')}>
@@ -173,7 +235,7 @@ const Settings = ({navigation}) => {
           </View>
 
           {/* Current Favorites Section */}
-          <View style={styles.favoritesSection}>
+          <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionLabel}>Current Favorites</Text>
               <View style={styles.updateIndicator}>
@@ -256,7 +318,7 @@ const Settings = ({navigation}) => {
           </View>
 
           {/* Privacy Section */}
-          <View style={styles.privacySection}>
+          <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionLabel}>Privacy</Text>
             </View>
@@ -272,7 +334,7 @@ const Settings = ({navigation}) => {
                 onPress={() => setVisibilityModalVisible(true)}>
                 <Text
                   style={[
-                    styles.infoValue,
+                    styles.visibilityValue,
                     {
                       color:
                         userData.locationVisibility === 'Everyone'
@@ -350,18 +412,41 @@ const Settings = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: DARK_BG,
+    backgroundColor: '#FFFFFF',
   },
-  gradientTop: {
+  backgroundContainer: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  mintCircle: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    backgroundColor: PURPLE,
-    opacity: 0.3,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
+    backgroundColor: '#DCFCE1',
+    width: width * 0.7,
+    height: width * 0.7,
+    borderRadius: width,
+    left: -width * 0.2,
+    opacity: 0.8,
+    zIndex: -1,
+  },
+  creamCircle: {
+    position: 'absolute',
+    backgroundColor: '#FEF9E6',
+    width: width * 0.8,
+    height: width * 0.8,
+    borderRadius: width,
+    right: -width * 0.3,
+    opacity: 0.7,
+    zIndex: -1,
+  },
+  pinkCircle: {
+    position: 'absolute',
+    backgroundColor: '#FADADD',
+    width: width * 0.7,
+    height: width * 0.7,
+    borderRadius: width,
+    right: -width * 0.2,
+    opacity: 0.6,
+    zIndex: -1,
   },
   header: {
     flexDirection: 'row',
@@ -372,12 +457,17 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: PURPLE,
     borderRadius: 20,
     width: 36,
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
   },
   backButtonText: {
     fontSize: 18,
@@ -385,9 +475,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
     marginLeft: 15,
   },
   contentContainer: {
@@ -399,26 +489,31 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_BG,
     borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: PURPLE,
+    shadowColor: '#000',
     shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
-    padding: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(192, 77, 238, 0.3)',
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  profileImageWrapper: {
+    padding: 3,
+    borderRadius: 38,
+    borderWidth: 2,
+    borderColor: PURPLE,
   },
   profileImage: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    borderWidth: 2,
-    borderColor: PURPLE,
   },
   nameContainer: {
     marginLeft: 15,
@@ -427,45 +522,42 @@ const styles = StyleSheet.create({
   nameText: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
   },
   nameInput: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
     borderBottomWidth: 1,
     borderBottomColor: PURPLE,
     paddingBottom: 2,
   },
   followersText: {
     fontSize: 14,
-    color: '#9B9B9B',
+    color: '#666',
     marginTop: 3,
   },
-  bioSection: {
-    padding: 15,
+  section: {
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: SECTION_BG,
   },
   bioText: {
     fontSize: 14,
-    color: '#ccc',
+    color: '#333',
     lineHeight: 20,
   },
   bioInput: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333',
     borderWidth: 1,
     borderColor: PURPLE,
     borderRadius: 8,
     padding: 8,
     textAlignVertical: 'top',
     minHeight: 60,
-  },
-  favoritesSection: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -476,6 +568,10 @@ const styles = StyleSheet.create({
   updateIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(76, 217, 100, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
   updateDot: {
     width: 6,
@@ -486,17 +582,18 @@ const styles = StyleSheet.create({
   },
   updateText: {
     fontSize: 10,
-    color: '#9B9B9B',
+    color: '#4CD964',
+    fontWeight: '600',
   },
   sectionLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
   },
   editText: {
     fontSize: 12,
     color: PURPLE,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   musicInfo: {
     marginTop: 5,
@@ -506,18 +603,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   infoLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   infoIcon: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
   },
   infoLabel: {
     fontSize: 14,
-    color: '#9B9B9B',
+    color: '#666',
+    fontWeight: '500',
   },
   infoValueContainer: {
     flex: 1,
@@ -525,29 +626,30 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333',
     textAlign: 'right',
+    fontWeight: '600',
   },
   infoInput: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333',
     textAlign: 'right',
     borderBottomWidth: 1,
     borderBottomColor: PURPLE,
     paddingBottom: 2,
     minWidth: 100,
   },
-  privacySection: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-  },
   visibilitySelector: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  visibilityValue: {
+    fontSize: 14,
+    textAlign: 'right',
+    fontWeight: '600',
+  },
   dropdownIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(192, 77, 238, 0.1)',
     width: 18,
     height: 18,
     borderRadius: 9,
@@ -562,16 +664,21 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 20,
   },
   spotifyButton: {
     backgroundColor: '#1DB954',
     borderRadius: 20,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 15,
     flex: 1,
     marginRight: 10,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   spotifyButtonText: {
     color: '#fff',
@@ -579,36 +686,43 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(244, 67, 54, 0.1)',
     borderRadius: 20,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 15,
     alignItems: 'center',
     flex: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(244, 67, 54, 0.3)',
   },
   logoutButtonText: {
     color: '#F44336',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
     width: '80%',
-    backgroundColor: CARD_BG,
+    backgroundColor: '#FFF',
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
     borderColor: PURPLE,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -620,16 +734,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 12,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   selectedOption: {
-    backgroundColor: 'rgba(192, 77, 238, 0.2)',
+    backgroundColor: 'rgba(192, 77, 238, 0.1)',
     borderColor: PURPLE,
     borderWidth: 1,
   },
   visibilityOptionText: {
     fontSize: 16,
-    color: '#fff',
+    color: '#333',
   },
   selectedOptionText: {
     color: PURPLE,

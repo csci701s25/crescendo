@@ -22,6 +22,7 @@ const Stack = createNativeStackNavigator();
 // View toggle button components
 const ViewToggleButtons = ({isGlobal, onToggle}) => {
   const PURPLE = '#C04DEE';
+  const SUNSET_ORANGE = '#F3904F';
 
   return (
     <View style={styles.viewToggleButtons}>
@@ -35,7 +36,7 @@ const ViewToggleButtons = ({isGlobal, onToggle}) => {
         <Ionicons
           name="location"
           size={24}
-          color={!isGlobal ? '#fff' : PURPLE}
+          color={!isGlobal ? '#fff' : SUNSET_ORANGE}
         />
       </TouchableOpacity>
 
@@ -49,7 +50,7 @@ const ViewToggleButtons = ({isGlobal, onToggle}) => {
         <Ionicons
           name="globe-outline"
           size={24}
-          color={isGlobal ? '#fff' : PURPLE}
+          color={isGlobal ? '#fff' : SUNSET_ORANGE}
         />
       </TouchableOpacity>
     </View>
@@ -58,7 +59,7 @@ const ViewToggleButtons = ({isGlobal, onToggle}) => {
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [isGlobalView, setIsGlobalView] = useState(false);
+  const [isGlobalView, setIsGlobalView] = useState(true);
 
   // Function to be called when splash animation completes
   const handleAnimationComplete = () => {
@@ -133,12 +134,12 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   activeButton: {
-    backgroundColor: '#C04DEE',
-    borderColor: '#C04DEE',
+    backgroundColor: '#F3904F',
+    borderColor: '#F3904F',
   },
   inactiveButton: {
     backgroundColor: 'white',
-    borderColor: '#C04DEE',
+    borderColor: '#F3904F',
   },
 });
 

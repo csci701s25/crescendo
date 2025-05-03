@@ -9,33 +9,60 @@ import {
   Dimensions,
   TextInput,
   Animated,
+  ScrollView,
+  FlatList,
 } from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
-import {MaterialIcons, FontAwesome, Ionicons} from '@expo/vector-icons';
+import {
+  MaterialIcons,
+  FontAwesome,
+  Ionicons,
+  Feather,
+  AntDesign,
+} from '@expo/vector-icons';
 import SongIdentifier from './SongIdentifier';
 import UserProfileModal from './UserProfileModal.jsx';
 import listenersData from '../../data/listeners.json';
+import {FontAwesome5} from '@expo/vector-icons';
 
-// Replace with icon components
+// Icon components
 const UserIcon = ({color = '#888', size = 18}) => (
   <FontAwesome name="user" size={size} color={color} />
 );
-
 const MusicIcon = ({color = '#888', size = 18}) => (
   <Ionicons name="musical-note" size={size} color={color} />
 );
-
 const SearchIcon = ({color = '#888', size = 18}) => (
   <Ionicons name="search" size={size} color={color} />
 );
-
 const SettingsIcon = ({color = '#888', size = 18}) => (
   <MaterialIcons name="settings" size={size} color={color} />
+);
+const MessageIcon = ({color = '#888', size = 18}) => (
+  <Feather name="message-circle" size={size} color={color} />
+);
+const AddIcon = ({color = '#888', size = 18}) => (
+  <FontAwesome5 name="hand-point-right" size={size} color={color} />
+);
+const ExpandIcon = ({color = '#888', size = 18}) => (
+  <MaterialIcons name="expand-less" size={size} color={color} />
+);
+const CollapseIcon = ({color = '#888', size = 18}) => (
+  <MaterialIcons name="expand-more" size={size} color={color} />
 );
 
 const {width, height} = Dimensions.get('window');
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios' ? 47 : StatusBar.currentHeight || 0;
+
+// Color scheme
+const ORANGE = '#F3904F'; // Your chosen color
+const DARK_GRAY = '#333333';
+const MEDIUM_GRAY = '#666666';
+
+// Bottom sheet heights
+const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
+const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
 const MapScreen = ({navigation}) => {
   const [location, setLocation] = useState({
@@ -46,10 +73,35 @@ const MapScreen = ({navigation}) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
 
+  // Friends list state
+  const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
+  const bottomSheetHeight = useRef(
+    new Animated.Value(COLLAPSED_HEIGHT),
+  ).current;
+  const [friendSearchQuery, setFriendSearchQuery] = useState('');
+
+  // Generate random distances
+  const randomDistances = useRef(
+    listenersData.map(() => (Math.random() * 0.9 + 0.1).toFixed(1)),
+  ).current;
+
   useEffect(() => {
     // You could add location permissions and get user location here
     // For example, using expo-location
   }, []);
+
+  // Toggle bottom sheet
+  const toggleBottomSheet = () => {
+    const newValue = isBottomSheetExpanded ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT;
+
+    Animated.spring(bottomSheetHeight, {
+      toValue: newValue,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+
+    setIsBottomSheetExpanded(!isBottomSheetExpanded);
+  };
 
   const onMapReady = () => {
     setIsMapReady(true);
@@ -57,6 +109,16 @@ const MapScreen = ({navigation}) => {
 
   // Use listeners from JSON
   const musicListeners = listenersData;
+
+  // Filter friends based on search
+  const filteredFriends = musicListeners.filter(listener => {
+    if (!friendSearchQuery.trim()) return true;
+
+    return (
+      listener.username &&
+      listener.username.toLowerCase().includes(friendSearchQuery.toLowerCase())
+    );
+  });
 
   const handleMarkerPress = user => {
     setSelectedUser(user);
@@ -123,6 +185,78 @@ const MapScreen = ({navigation}) => {
         </MapView>
       </View>
 
+      {/* Friends Bottom Sheet */}
+      <Animated.View style={[styles.bottomSheet, {height: bottomSheetHeight}]}>
+        {/* Header with toggle button */}
+        <View style={styles.bottomSheetHeader}>
+          <Text style={styles.bottomSheetTitle}>Friends</Text>
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={toggleBottomSheet}>
+            {isBottomSheetExpanded ? (
+              <CollapseIcon color={DARK_GRAY} size={24} />
+            ) : (
+              <ExpandIcon color={DARK_GRAY} size={24} />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Search bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <SearchIcon color={MEDIUM_GRAY} size={20} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search friends..."
+              placeholderTextColor="#999"
+              value={friendSearchQuery}
+              onChangeText={setFriendSearchQuery}
+            />
+            {friendSearchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setFriendSearchQuery('')}>
+                <AntDesign name="close" size={16} color={MEDIUM_GRAY} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Friends list */}
+        <FlatList
+          data={filteredFriends}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContainer}
+          renderItem={({item, index}) => (
+            <View style={styles.friendItem}>
+              <View style={styles.friendItemLeft}>
+                <View style={styles.friendAvatar}>
+                  <UserIcon color="#fff" size={18} />
+                </View>
+                <View style={styles.friendInfo}>
+                  <Text style={styles.friendName}>{item.username}</Text>
+                  <View style={styles.friendSongContainer}>
+                    <MusicIcon color={ORANGE} size={12} />
+                    <Text style={styles.friendSong} numberOfLines={1}>
+                      {item.song}
+                    </Text>
+                  </View>
+                  <Text style={styles.distanceText}>
+                    {randomDistances[index]} miles away
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.friendActions}>
+                <TouchableOpacity style={styles.actionButton}>
+                  <MessageIcon color="#fff" size={14} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <AddIcon color="#fff" size={14} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        />
+      </Animated.View>
+
       {/* User Profile Modal */}
       <UserProfileModal
         visible={isProfileModalVisible}
@@ -158,7 +292,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#C04DEE',
+    backgroundColor: ORANGE,
     borderWidth: 3,
     borderColor: 'white',
     shadowColor: '#000',
@@ -177,7 +311,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#C04DEE',
+    backgroundColor: ORANGE,
     borderWidth: 2,
     borderColor: 'white',
     alignItems: 'center',
@@ -200,6 +334,121 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  // Friends Bottom Sheet
+  bottomSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -3},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
+    zIndex: 10,
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
+  },
+  bottomSheetTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: DARK_GRAY,
+  },
+  toggleButton: {
+    padding: 5,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 15,
+    color: DARK_GRAY,
+  },
+  listContainer: {
+    paddingBottom: 20,
+  },
+  friendItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
+  },
+  friendItemLeft: {
+    flexDirection: 'row',
+    flex: 1,
+  },
+  friendAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: ORANGE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  friendInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  friendName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DARK_GRAY,
+    marginBottom: 3,
+  },
+  friendSongContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  friendSong: {
+    fontSize: 13,
+    color: MEDIUM_GRAY,
+    marginLeft: 5,
+  },
+  distanceText: {
+    fontSize: 12,
+    color: ORANGE,
+    fontWeight: '500',
+  },
+  friendActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: ORANGE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
 });
 

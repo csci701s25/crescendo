@@ -8,13 +8,20 @@ import {
   StatusBar,
   Dimensions,
   Animated,
-  PanResponder,
   FlatList,
-  TextInput,
+  ScrollView,
+  Image,
 } from 'react-native';
 import MapView, {Marker, Circle} from 'react-native-maps';
-import {MaterialIcons, Ionicons, FontAwesome} from '@expo/vector-icons';
+import {
+  MaterialIcons,
+  Ionicons,
+  FontAwesome,
+  AntDesign,
+  Feather,
+} from '@expo/vector-icons';
 import listenersData from '../../data/listeners.json';
+import SearchBar from './SearchBar';
 
 // Icon components
 const MusicIcon = ({color = '#888', size = 18}) => (
@@ -27,20 +34,29 @@ const UserIcon = ({color = '#888', size = 18}) => (
   <FontAwesome name="user" size={size} color={color} />
 );
 const AddIcon = ({color = '#888', size = 18}) => (
-  <Ionicons name="person-add" size={size} color={color} />
+  <AntDesign name="adduser" size={size} color={color} />
 );
-const SearchIcon = ({size = 24, color = '#888'}) => (
-  <Ionicons name="search" size={size} color={color} />
+const ExpandIcon = ({color = '#888', size = 18}) => (
+  <MaterialIcons name="expand-less" size={size} color={color} />
+);
+const CollapseIcon = ({color = '#888', size = 18}) => (
+  <MaterialIcons name="expand-more" size={size} color={color} />
 );
 
 const {width, height} = Dimensions.get('window');
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios' ? 47 : StatusBar.currentHeight || 0;
-const PURPLE = '#C04DEE';
 
-// Slider constants
-const sliderWidth = 280;
-const thumbSize = 24;
+// Color scheme
+const TEAL = '#39A2AE';
+const DARK_GRAY = '#333333';
+const MEDIUM_GRAY = '#666666';
+const LIGHT_GRAY = '#F0F0F0';
+const SUNSET_ORANGE = '#F3904F';
+
+// Bottom sheet heights
+const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
+const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
 const MapGlobal = ({navigation}) => {
   // State for center location
@@ -53,25 +69,21 @@ const MapGlobal = ({navigation}) => {
   const circleRadius = 5000;
   const [isMapReady, setIsMapReady] = useState(false);
 
-  // Add search bar state and logic here
+  // Search bar state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('artists'); // 'artists' or 'songs'
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const dropdownAnimation = useRef(new Animated.Value(0)).current;
 
-  const toggleDropdown = () => {
-    setIsDropdownVisible(!isDropdownVisible);
-    Animated.timing(dropdownAnimation, {
-      toValue: isDropdownVisible ? 0 : 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
+  // Bottom sheet state
+  const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
+  const bottomSheetHeight = useRef(
+    new Animated.Value(COLLAPSED_HEIGHT),
+  ).current;
 
-  const selectSearchType = type => {
-    setSearchType(type);
-    toggleDropdown();
-  };
+  // Active card index for search results
+  const [activeIndex, setActiveIndex] = useState(0);
+  const flatListRef = useRef(null);
 
   // Handle map ready event
   const onMapReady = () => {
@@ -85,8 +97,49 @@ const MapGlobal = ({navigation}) => {
     }
   };
 
+  // Toggle bottom sheet
+  const toggleBottomSheet = () => {
+    const newValue = isBottomSheetExpanded ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT;
+
+    Animated.spring(bottomSheetHeight, {
+      toValue: newValue,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+
+    setIsBottomSheetExpanded(!isBottomSheetExpanded);
+  };
+
   // Use listeners from JSON
   const musicListeners = listenersData;
+
+  // Filter listeners based on search
+  const filteredListeners = musicListeners.filter(listener => {
+    if (!searchQuery.trim()) return true;
+    const searchLower = searchQuery.trim().toLowerCase();
+
+    if (searchType === 'artists') {
+      return (
+        (listener.title &&
+          listener.title.toLowerCase().includes(searchLower)) ||
+        (listener.username &&
+          listener.username.toLowerCase().includes(searchLower))
+      );
+    } else {
+      return listener.song && listener.song.toLowerCase().includes(searchLower);
+    }
+  });
+
+  // Handle card scroll for search results
+  const onViewableItemsChanged = useRef(({viewableItems}) => {
+    if (viewableItems.length > 0) {
+      setActiveIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
 
   return (
     <View style={styles.container}>
@@ -97,92 +150,21 @@ const MapGlobal = ({navigation}) => {
       />
 
       {/* Settings Button (Top right) */}
-      {/* <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
+      <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
         <SettingsIcon color="#fff" size={24} />
-      </TouchableOpacity> */}
+      </TouchableOpacity>
 
       {/* SEARCH BAR - TOP */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBarWrapper}>
-          <View style={styles.searchBar}>
-            <TouchableOpacity
-              style={styles.typeSelector}
-              onPress={toggleDropdown}>
-              <Text style={styles.typeSelectorText}>
-                {searchType === 'artists' ? 'Artists' : 'Songs'}
-              </Text>
-              {searchType === 'artists' ? (
-                <UserIcon color="#C04DEE" size={20} />
-              ) : (
-                <MusicIcon color="#C04DEE" size={20} />
-              )}
-            </TouchableOpacity>
-            <View style={styles.searchInputContainer}>
-              <SearchIcon size={24} color="#888" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={`Search ${searchType}...`}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholderTextColor="#888"
-              />
-            </View>
-          </View>
-        </View>
-        {isDropdownVisible && (
-          <Animated.View
-            style={[
-              styles.dropdownMenu,
-              {
-                opacity: dropdownAnimation,
-                transform: [
-                  {
-                    translateY: dropdownAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [10, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}>
-            <TouchableOpacity
-              style={[
-                styles.dropdownItem,
-                searchType === 'artists' && styles.activeDropdownItem,
-              ]}
-              onPress={() => selectSearchType('artists')}>
-              <UserIcon
-                color={searchType === 'artists' ? '#C04DEE' : '#888'}
-                size={24}
-              />
-              <Text
-                style={[
-                  styles.dropdownItemText,
-                  searchType === 'artists' && styles.activeDropdownItemText,
-                ]}>
-                Artists
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.dropdownItem,
-                searchType === 'songs' && styles.activeDropdownItem,
-              ]}
-              onPress={() => selectSearchType('songs')}>
-              <MusicIcon
-                color={searchType === 'songs' ? '#C04DEE' : '#888'}
-                size={24}
-              />
-              <Text
-                style={[
-                  styles.dropdownItemText,
-                  searchType === 'songs' && styles.activeDropdownItemText,
-                ]}>
-                Songs
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-        )}
+      <View style={styles.searchBarContainer}>
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchType={searchType}
+          setSearchType={setSearchType}
+          isDropdownVisible={isDropdownVisible}
+          setIsDropdownVisible={setIsDropdownVisible}
+          dropdownAnimation={dropdownAnimation}
+        />
       </View>
 
       {/* Full Screen Map */}
@@ -210,13 +192,13 @@ const MapGlobal = ({navigation}) => {
           <Circle
             center={location}
             radius={circleRadius}
-            fillColor="rgba(192, 77, 238, 0.15)"
-            strokeColor="rgba(192, 77, 238, 0.5)"
+            fillColor="rgba(57, 162, 174, 0.15)"
+            strokeColor="rgba(57, 162, 174, 0.5)"
             strokeWidth={2}
           />
 
           {/* Display music listeners from JSON */}
-          {musicListeners.map(listener => (
+          {filteredListeners.map(listener => (
             <Marker
               key={listener.id}
               coordinate={listener.coordinate}
@@ -232,57 +214,104 @@ const MapGlobal = ({navigation}) => {
         </MapView>
       </View>
 
-      {/* Listener Profiles Horizontal ScrollView */}
-      {musicListeners.length > 0 && (
-        <View style={styles.profilesContainer}>
+      {/* Conditional Rendering: Show either Search Results or Bottom Sheet */}
+      {searchQuery.trim() ? (
+        /* SEARCH RESULTS - Full width cards when searching */
+        <View style={styles.searchResultsContainer}>
           <FlatList
+            ref={flatListRef}
             horizontal
-            data={musicListeners}
+            data={filteredListeners}
             keyExtractor={item => item.id}
             showsHorizontalScrollIndicator={false}
-            snapToInterval={300}
+            snapToInterval={width}
             decelerationRate="fast"
-            contentContainerStyle={styles.profilesContent}
-            renderItem={({item}) => (
-              <View style={styles.profileCard}>
-                <View style={styles.profileHeader}>
-                  <View style={styles.profileImageContainer}>
-                    <UserIcon color={PURPLE} size={30} />
-                  </View>
-                  <View style={styles.profileInfo}>
-                    <Text style={styles.profileName}>{item.username}</Text>
-                    <Text style={styles.profileBio} numberOfLines={2}>
-                      {item.bio}
-                    </Text>
-                  </View>
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={({item, index}) => (
+              <View style={styles.searchResultCard}>
+                {/* Numerical indicator */}
+                <View style={styles.indicatorContainer}>
+                  <Text style={styles.indicatorText}>
+                    {index + 1}/{filteredListeners.length}
+                  </Text>
                 </View>
 
-                <View style={styles.currentlyListeningContainer}>
-                  <View style={styles.listeningIcon}>
-                    <MusicIcon color="#fff" size={16} />
+                <View style={styles.cardContent}>
+                  {/* User icon and name */}
+                  <View style={styles.userSection}>
+                    <View style={styles.profileImageContainer}>
+                      <UserIcon color="#fff" size={28} />
+                    </View>
+                    <Text style={styles.profileName}>{item.username}</Text>
                   </View>
-                  <View style={styles.listeningInfo}>
+
+                  {/* Currently listening section */}
+                  <View style={styles.divider} />
+
+                  <View style={styles.listeningSection}>
                     <Text style={styles.listeningLabel}>
                       CURRENTLY LISTENING TO
                     </Text>
-                    <Text style={styles.listeningSong}>{item.song}</Text>
+                    <View style={styles.songContainer}>
+                      <MusicIcon color={SUNSET_ORANGE} size={20} />
+                      <Text style={styles.listeningSong}>{item.song}</Text>
+                    </View>
                   </View>
-                </View>
 
-                <TouchableOpacity style={styles.addFriendButton}>
-                  <AddIcon color="#fff" size={16} />
-                  <Text style={styles.addFriendText}>Add as Friend</Text>
-                </TouchableOpacity>
-
-                <View style={styles.cardIndicator}>
-                  <View style={styles.cardDot} />
-                  <View style={[styles.cardDot, styles.cardDotActive]} />
-                  <View style={styles.cardDot} />
+                  {/* Add friend button */}
+                  <TouchableOpacity style={styles.addFriendButton}>
+                    <AddIcon color="#fff" size={16} />
+                    <Text style={styles.addFriendText}>Add as Friend</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
           />
         </View>
+      ) : (
+        /* BOTTOM SHEET - Normal view with vertical list */
+        <Animated.View
+          style={[styles.bottomSheet, {height: bottomSheetHeight}]}>
+          {/* Header with toggle button */}
+          <View style={styles.bottomSheetHeader}>
+            <Text style={styles.bottomSheetTitle}>Nearby Listeners</Text>
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={toggleBottomSheet}>
+              {isBottomSheetExpanded ? (
+                <CollapseIcon color={DARK_GRAY} size={24} />
+              ) : (
+                <ExpandIcon color={DARK_GRAY} size={24} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Vertical list of listeners */}
+          <ScrollView style={styles.listContainer}>
+            {filteredListeners.map((listener, index) => (
+              <View key={listener.id} style={styles.listItem}>
+                <View style={styles.listItemLeft}>
+                  <View style={styles.smallProfileImage}>
+                    <UserIcon color="#fff" size={18} />
+                  </View>
+                  <View style={styles.listItemTextContainer}>
+                    <Text style={styles.listItemName}>{listener.username}</Text>
+                    <View style={styles.listItemSongContainer}>
+                      <MusicIcon color={SUNSET_ORANGE} size={14} />
+                      <Text style={styles.listItemSong} numberOfLines={1}>
+                        {listener.song}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.listItemAddButton}>
+                  <AddIcon color="#fff" size={14} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        </Animated.View>
       )}
     </View>
   );
@@ -291,7 +320,7 @@ const MapGlobal = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F2EFE7',
   },
   mapContainer: {
     flex: 1,
@@ -299,6 +328,13 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  searchBarContainer: {
+    position: 'absolute',
+    top: STATUSBAR_HEIGHT + 10,
+    left: 16,
+    right: 16,
+    zIndex: 20,
   },
   centerMarkerContainer: {
     width: 30,
@@ -310,7 +346,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#C04DEE',
+    backgroundColor: SUNSET_ORANGE,
     borderWidth: 3,
     borderColor: 'white',
     shadowColor: '#000',
@@ -329,7 +365,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#C04DEE',
+    backgroundColor: SUNSET_ORANGE,
     borderWidth: 2,
     borderColor: 'white',
     alignItems: 'center',
@@ -352,205 +388,193 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  profilesContainer: {
+
+  // BOTTOM SHEET STYLES
+  bottomSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#F2EFE7',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -3},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
+    zIndex: 10,
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
+  },
+  bottomSheetTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: DARK_GRAY,
+  },
+  toggleButton: {
+    padding: 5,
+  },
+  listContainer: {
+    flex: 1,
+  },
+  listItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
+  },
+  listItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  smallProfileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: SUNSET_ORANGE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  listItemTextContainer: {
+    flex: 1,
+  },
+  listItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DARK_GRAY,
+    marginBottom: 3,
+  },
+  listItemSongContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  listItemSong: {
+    fontSize: 13,
+    color: MEDIUM_GRAY,
+    marginLeft: 5,
+  },
+  listItemAddButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: SUNSET_ORANGE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // SEARCH RESULTS STYLES
+  searchResultsContainer: {
     position: 'absolute',
     bottom: 20,
     left: 0,
     right: 0,
-    height: 220,
+    height: height * 0.3,
     zIndex: 10,
   },
-  profilesContent: {
-    paddingHorizontal: 16,
+  searchResultCard: {
+    width: width,
+    height: '100%',
+    padding: 16,
   },
-  profileCard: {
-    width: 300,
-    height: 200,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    marginRight: 15,
+  indicatorContainer: {
+    position: 'absolute',
+    top: 30,
+    right: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    zIndex: 1,
+  },
+  indicatorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: DARK_GRAY,
+  },
+  cardContent: {
+    flex: 1,
+    backgroundColor: '#F2EFE7',
+    borderRadius: 16,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: {width: 0, height: 3},
     shadowOpacity: 0.2,
-    shadowRadius: 10,
+    shadowRadius: 5,
     elevation: 5,
   },
-  profileHeader: {
+  userSection: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
   },
   profileImageContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f0e6f5',
+    backgroundColor: '#F3904F',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
-  },
-  profileInfo: {
-    flex: 1,
+    marginRight: 14,
   },
   profileName: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
+    color: DARK_GRAY,
   },
-  profileBio: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 16,
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginVertical: 12,
   },
-  currentlyListeningContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f0ff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  listeningIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: PURPLE,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  listeningInfo: {
-    flex: 1,
+  listeningSection: {
+    marginBottom: 14,
   },
   listeningLabel: {
-    fontSize: 9,
+    fontSize: 11,
+    color: MEDIUM_GRAY,
+    marginBottom: 8,
     fontWeight: '600',
-    color: PURPLE,
     letterSpacing: 0.5,
-    marginBottom: 2,
+  },
+  songContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   listeningSong: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 18,
+    fontWeight: '600',
+    color: DARK_GRAY,
+    marginLeft: 8,
   },
   addFriendButton: {
     flexDirection: 'row',
-    backgroundColor: PURPLE,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    backgroundColor: '#F3904F',
+
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignSelf: 'center',
   },
   addFriendText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#F2EFE7',
+    fontWeight: '600',
     marginLeft: 8,
-  },
-  cardIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  cardDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#ddd',
-    marginHorizontal: 2,
-  },
-  cardDotActive: {
-    backgroundColor: PURPLE,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  searchContainer: {
-    position: 'absolute',
-    top: STATUSBAR_HEIGHT + 20,
-    left: 16,
-    right: 16,
-    zIndex: 20,
-  },
-  searchBarWrapper: {
-    width: '100%',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 25,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  typeSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    width: 110,
-  },
-  typeSelectorText: {
-    fontSize: 16,
-    color: '#555',
-    fontWeight: '500',
-    marginRight: 10,
-  },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 15,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: '#333',
-    padding: 0,
-    marginLeft: 10,
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  activeDropdownItem: {
-    backgroundColor: '#f8f0ff',
-  },
-  dropdownItemText: {
-    marginLeft: 15,
-    fontSize: 18,
-    color: '#666',
-  },
-  activeDropdownItemText: {
-    color: '#C04DEE',
-    fontWeight: '500',
+    fontSize: 15,
   },
 });
 
