@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "username": "Ayman Khan",
+    "coordinate": {"latitude": 37.78925, "longitude": -122.4344},
+    "title": "John",
+    "song": "Don't Trust Bitches",
+    "friends": ["2", "3"]
+  },
+  {
+    "id": "2",
+    "username": "Hedavam Solano",
+    "coordinate": {"latitude": 37.78625, "longitude": -122.4304},
+    "title": "Emma",
+    "song": "Yesterday",
+    "friends": ["1"]
+  },
+  {
+    "id": "3",
+    "username": "Mike",
+    "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
+    "title": "Mike",
+    "song": "Cruel Summer",
+    "friends": ["1"]
+  },
+  {
+    "id": "4",
+    "username": "Mike",
+    "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
+    "title": "Mike",
+    "song": "Fade to Black",
+    "friends": ["1"]
+  },
+  {
+    "id": "5",
+    "username": "Mike",
+    "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
+    "title": "Mike",
+    "song": "Don't Cry",
+    "friends": ["1"]
+  },
+  {
+    "id": "6",
+    "username": "Shaq",
+    "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
+    "title": "Mike",
+    "song": "Cruel Summer",
+    "friends": ["1"]
+  },
+  {
+    "id": "7",
+    "username": "JP",
+    "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
+    "title": "Mike",
+    "song": "Don't Trust Bitches",
+    "friends": ["1"]
+  }
+]

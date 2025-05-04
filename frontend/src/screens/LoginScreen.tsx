@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,55 @@ import {
   TouchableOpacity,
   StatusBar,
   SafeAreaView,
+  Image,
+  Dimensions,
+  Animated,
+  Easing,
 } from 'react-native';
 import SpotifyLoginButton from '../components/auth/SpotifyLoginButton';
 import {SpotifyAuthData} from '../services/spotifyAuth';
 
+const {width, height} = Dimensions.get('window');
+
 const LoginScreen = ({navigation}) => {
+  // Animation values for the continuous downward movement
+  const circleAnim1 = useRef(new Animated.Value(0)).current;
+  const circleAnim2 = useRef(new Animated.Value(0)).current;
+  const circleAnim3 = useRef(new Animated.Value(0)).current;
+
+  // Start looping animations when component mounts
+  useEffect(() => {
+    // Create looping animation for first set of circles
+    Animated.loop(
+      Animated.timing(circleAnim1, {
+        toValue: 1,
+        duration: 20000, // 20 seconds for one full cycle
+        useNativeDriver: true,
+        easing: Easing.linear, // Linear movement for seamless loop
+      }),
+    ).start();
+
+    // Create looping animation for second set of circles with slight delay
+    Animated.loop(
+      Animated.timing(circleAnim2, {
+        toValue: 1,
+        duration: 25000, // 25 seconds for one full cycle (slightly different speed)
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
+    ).start();
+
+    // Create looping animation for third set of circles with another delay
+    Animated.loop(
+      Animated.timing(circleAnim3, {
+        toValue: 1,
+        duration: 18000, // 18 seconds for one full cycle (different speed)
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
+    ).start();
+  }, []);
+
   // Spotify login handler
   const handleLoginSuccess = (userData: SpotifyAuthData) => {
     console.log('User logged in successfully:', userData);
@@ -27,38 +71,56 @@ const LoginScreen = ({navigation}) => {
     }
   };
 
+  // Create multiple instances of each circle to create the continuous loop effect
+  const createLoopingCircles = (animValue, baseStyle, topOffset = 0) => {
+    // Calculate translateY for the continuous loop effect
+    // When the animation value goes from 0 to 1, the circle moves from its starting position
+    // to starting position + height, creating the illusion of infinite movement
+    const translateY = animValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [topOffset, topOffset + height],
+    });
+
+    // Create two copies of the same circle with identical animation
+    // The second copy is positioned exactly one screen height above the first one
+    // As they both move down, when the first one exits the bottom, the second one enters the top
+    return (
+      <>
+        <Animated.View style={[baseStyle, {transform: [{translateY}]}]} />
+        <Animated.View
+          style={[
+            baseStyle,
+            {top: -height + topOffset, transform: [{translateY}]},
+          ]}
+        />
+      </>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
-      {/* Skip button at top right */}
-      <View style={styles.skipContainer}>
-        <TouchableOpacity onPress={handleSkip}>
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
+      {/* Background with animated circles */}
+      <View style={styles.backgroundContainer}>
+        {/* Create multiple instances of mint circles for looping effect */}
+        {createLoopingCircles(circleAnim1, styles.mintCircle, -width * 0.2)}
+
+        {/* Create multiple instances of cream circles for looping effect */}
+        {createLoopingCircles(circleAnim2, styles.creamCircle, height * 0.05)}
+
+        {/* Create multiple instances of pink circles for looping effect */}
+        {createLoopingCircles(circleAnim3, styles.pinkCircle, height * 0.6)}
       </View>
 
-      {/* Main content with concentric circles, logo, and text */}
+      {/* Main content with balloon image and text - balloon fixed in position */}
       <View style={styles.contentContainer}>
-        <View style={styles.circlesContainer}>
-          {/* Render concentric circles */}
-          {[...Array(8)].map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.circle,
-                {
-                  width: 400 - i * 50,
-                  height: 400 - i * 50,
-                  opacity: 0.1 + i * 0.02,
-                },
-              ]}
-            />
-          ))}
-
-          {/* App name */}
-          <Text style={styles.appName}>Crescendo</Text>
-        </View>
+        {/* Balloon image stays fixed */}
+        <Image
+          source={require('../../assets/images/crescendo_expo.png')}
+          style={styles.balloonImage}
+          resizeMode="contain"
+        />
 
         {/* Subtitle text */}
         <View style={styles.textContainer}>
@@ -73,6 +135,7 @@ const LoginScreen = ({navigation}) => {
       <View style={styles.buttonSection}>
         {/* Connect button (Spotify) */}
         <SpotifyLoginButton onLoginSuccess={handleLoginSuccess} />
+
         {/* Skip for now text */}
         <TouchableOpacity onPress={handleSkip} style={styles.skipButtonBottom}>
           <Text style={styles.skipButtonText}>Skip for now</Text>
@@ -85,15 +148,50 @@ const LoginScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#FFFFFF',
+  },
+  backgroundContainer: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  mintCircle: {
+    position: 'absolute',
+    backgroundColor: '#DCFCE1',
+    width: width * 0.7,
+    height: width * 0.7,
+    borderRadius: width,
+    left: -width * 0.2,
+    opacity: 0.8,
+    zIndex: -1,
+  },
+  creamCircle: {
+    position: 'absolute',
+    backgroundColor: '#FEF9E6',
+    width: width * 0.8,
+    height: width * 0.8,
+    borderRadius: width,
+    right: -width * 0.3,
+    opacity: 0.7,
+    zIndex: -1,
+  },
+  pinkCircle: {
+    position: 'absolute',
+    backgroundColor: '#FADADD',
+    width: width * 0.7,
+    height: width * 0.7,
+    borderRadius: width,
+    right: -width * 0.2,
+    opacity: 0.6,
+    zIndex: -1,
   },
   skipContainer: {
     position: 'absolute',
     right: 20,
+    top: 40,
     zIndex: 10,
   },
   skipText: {
-    color: '#FFFFFF',
+    color: '#333333',
     fontSize: 16,
   },
   contentContainer: {
@@ -101,25 +199,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    zIndex: 1, // Ensure content is above the background circles
   },
-  circlesContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 50,
-    marginBottom: 60,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 200,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  appName: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#FF3B30',
-    marginTop: 0,
-    zIndex: 2,
+  balloonImage: {
+    marginTop: -20,
+    width: width * 0.8,
+    height: width * 0.8,
+    marginBottom: 40,
   },
   textContainer: {
     alignItems: 'center',
@@ -128,13 +214,14 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 150,
+    color: '#333333',
+    marginTop: 0,
     textAlign: 'center',
   },
   subtitleText: {
+    marginTop: 10,
     fontSize: 16,
-    color: '#AAAAAA',
+    color: '#666666',
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -142,12 +229,13 @@ const styles = StyleSheet.create({
     marginBottom: 50,
     alignItems: 'center',
     paddingHorizontal: 30,
+    zIndex: 1, // Ensure buttons are above the background circles
   },
   skipButtonBottom: {
     padding: 10,
   },
   skipButtonText: {
-    color: '#AAAAAA',
+    color: '#666666',
     fontSize: 14,
   },
 });

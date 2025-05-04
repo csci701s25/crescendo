@@ -8,11 +8,20 @@ import {
   StatusBar,
   Dimensions,
   Animated,
-  PanResponder,
   FlatList,
+  ScrollView,
+  Image,
 } from 'react-native';
 import MapView, {Marker, Circle} from 'react-native-maps';
-import {MaterialIcons, Ionicons, FontAwesome} from '@expo/vector-icons';
+import {
+  MaterialIcons,
+  Ionicons,
+  FontAwesome,
+  AntDesign,
+  Feather,
+} from '@expo/vector-icons';
+import listenersData from '../../data/listeners.json';
+import SearchBar from './SearchBar';
 
 // Icon components
 const MusicIcon = ({color = '#888', size = 18}) => (
@@ -25,17 +34,29 @@ const UserIcon = ({color = '#888', size = 18}) => (
   <FontAwesome name="user" size={size} color={color} />
 );
 const AddIcon = ({color = '#888', size = 18}) => (
-  <Ionicons name="person-add" size={size} color={color} />
+  <AntDesign name="adduser" size={size} color={color} />
+);
+const ExpandIcon = ({color = '#888', size = 18}) => (
+  <MaterialIcons name="expand-less" size={size} color={color} />
+);
+const CollapseIcon = ({color = '#888', size = 18}) => (
+  <MaterialIcons name="expand-more" size={size} color={color} />
 );
 
 const {width, height} = Dimensions.get('window');
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios' ? 47 : StatusBar.currentHeight || 0;
-const PURPLE = '#C04DEE';
 
-// Slider constants
-const sliderWidth = 280;
-const thumbSize = 24;
+// Color scheme
+const TEAL = '#39A2AE';
+const DARK_GRAY = '#333333';
+const MEDIUM_GRAY = '#666666';
+const LIGHT_GRAY = '#F0F0F0';
+const SUNSET_ORANGE = '#F3904F';
+
+// Bottom sheet heights
+const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
+const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
 const MapGlobal = ({navigation}) => {
   // State for center location
@@ -44,52 +65,25 @@ const MapGlobal = ({navigation}) => {
     longitude: -122.4324,
   });
 
-  // State for radius control
-  const [radius, setRadius] = useState(3); // Initial value, scale 1-6
-  const [circleRadius, setCircleRadius] = useState(9000); // Initial radius in meters
+  // Fixed radius (5km)
+  const circleRadius = 5000;
   const [isMapReady, setIsMapReady] = useState(false);
 
-  // Slider position state
-  const [sliderPosition, setSliderPosition] = useState(
-    ((radius - 1) * (sliderWidth - thumbSize)) / 5,
-  );
+  // Search bar state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('artists'); // 'artists' or 'songs'
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const dropdownAnimation = useRef(new Animated.Value(0)).current;
 
-  // Update when radius changes
-  useEffect(() => {
-    setSliderPosition(((radius - 1) * (sliderWidth - thumbSize)) / 5);
-  }, [radius]);
-
-  // Create pan responder for the slider
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {},
-      onPanResponderMove: (_, gestureState) => {
-        let newPosition = gestureState.moveX - 50; // Adjust based on container position
-
-        // Keep within bounds
-        if (newPosition < 0) newPosition = 0;
-        if (newPosition > sliderWidth - thumbSize)
-          newPosition = sliderWidth - thumbSize;
-
-        setSliderPosition(newPosition);
-
-        // Calculate new radius based on position
-        const segmentWidth = (sliderWidth - thumbSize) / 5;
-        const newRadius = Math.min(
-          Math.max(Math.round(newPosition / segmentWidth) + 1, 1),
-          6,
-        );
-
-        if (newRadius !== radius) {
-          // Update radius
-          updateRadius(newRadius);
-        }
-      },
-      onPanResponderRelease: () => {},
-    }),
+  // Bottom sheet state
+  const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
+  const bottomSheetHeight = useRef(
+    new Animated.Value(COLLAPSED_HEIGHT),
   ).current;
+
+  // Active card index for search results
+  const [activeIndex, setActiveIndex] = useState(0);
+  const flatListRef = useRef(null);
 
   // Handle map ready event
   const onMapReady = () => {
@@ -103,100 +97,49 @@ const MapGlobal = ({navigation}) => {
     }
   };
 
-  // Update circle radius based on slider value
-  const updateRadius = newRadius => {
-    setRadius(newRadius);
-    // Convert radius value (1-6) to an actual map radius (in meters)
-    setCircleRadius(newRadius * 3000); // 3km to 18km
+  // Toggle bottom sheet
+  const toggleBottomSheet = () => {
+    const newValue = isBottomSheetExpanded ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT;
+
+    Animated.spring(bottomSheetHeight, {
+      toValue: newValue,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+
+    setIsBottomSheetExpanded(!isBottomSheetExpanded);
   };
 
-  // Calculate how many music symbols to show based on radius
-  const getMusicListeners = () => {
-    // Generate random music listeners around the center point
-    // Number of listeners increases with radius
-    const numberOfListeners = Math.min(Math.floor(radius), 6);
-    const listeners = [];
+  // Use listeners from JSON
+  const musicListeners = listenersData;
 
-    // Generate fixed positions based on radius value
-    for (let i = 0; i < numberOfListeners; i++) {
-      // Calculate position in a circular pattern around the center
-      const angle = (i / numberOfListeners) * Math.PI * 2;
-      const radiusFactor = circleRadius * 0.2; // Keep inside the circle
+  // Filter listeners based on search
+  const filteredListeners = musicListeners.filter(listener => {
+    if (!searchQuery.trim()) return true;
+    const searchLower = searchQuery.trim().toLowerCase();
 
-      const lat = location.latitude + Math.cos(angle) * (radiusFactor / 111300);
-      const lng =
-        location.longitude +
-        Math.sin(angle) *
-          (radiusFactor /
-            (111300 * Math.cos(location.latitude * (Math.PI / 180))));
-
-      listeners.push({
-        id: `global-${i}`,
-        coordinate: {latitude: lat, longitude: lng},
-        title: `Music Listener ${i + 1}`,
-      });
+    if (searchType === 'artists') {
+      return (
+        (listener.title &&
+          listener.title.toLowerCase().includes(searchLower)) ||
+        (listener.username &&
+          listener.username.toLowerCase().includes(searchLower))
+      );
+    } else {
+      return listener.song && listener.song.toLowerCase().includes(searchLower);
     }
+  });
 
-    return listeners;
-  };
+  // Handle card scroll for search results
+  const onViewableItemsChanged = useRef(({viewableItems}) => {
+    if (viewableItems.length > 0) {
+      setActiveIndex(viewableItems[0].index);
+    }
+  }).current;
 
-  // Get music listeners based on current radius
-  const musicListeners = getMusicListeners();
-
-  // Sample music listener profiles (one for each potential listener)
-  const [listenerProfiles] = useState([
-    {
-      id: 'global-0',
-      name: 'Ayman Khan',
-      bio: 'Music lover from Bronx. Always on the lookout for new indie bands.',
-      song: 'As It Was',
-      artist: 'Harry Styles',
-      image: null,
-    },
-    {
-      id: 'global-1',
-      name: 'Hedavam Solano',
-      bio: 'Electronic music producer and DJ. Sharing my favorite tracks while working on new material.',
-      song: 'Blinding Lights',
-      artist: 'The Weeknd',
-      image: null,
-    },
-    {
-      id: 'global-2',
-      name: 'An Adhikari',
-      bio: 'Guitaris with a love for rock.',
-      song: 'Bad Habit',
-      artist: 'Steve Lacy',
-      image: null,
-    },
-    {
-      id: 'global-3',
-      name: 'James Miller',
-      bio: 'Rock and metal enthusiast. Guitarist in a local band. Always on tour.',
-      song: 'Master of Puppets',
-      artist: 'Metallica',
-      image: null,
-    },
-    {
-      id: 'global-4',
-      name: 'Olivia Parker',
-      bio: 'Jazz vocalist and vinyl collector. I appreciate the classics and modern interpretations.',
-      song: 'Take Five',
-      artist: 'Dave Brubeck',
-      image: null,
-    },
-    {
-      id: 'global-5',
-      name: 'Liam Johnson',
-      bio: 'Hip hop producer and beatmaker. Sharing my inspirations and current projects.',
-      song: 'SICKO MODE',
-      artist: 'Travis Scott',
-      image: null,
-    },
-  ]);
-
-  // Get visible listeners based on radius
-  const visibleProfiles = listenerProfiles.slice(0, musicListeners.length);
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
 
   return (
     <View style={styles.container}>
@@ -211,33 +154,17 @@ const MapGlobal = ({navigation}) => {
         <SettingsIcon color="#fff" size={24} />
       </TouchableOpacity>
 
-      {/* Custom Radius Slider (Top) */}
-      <View style={styles.radiusContainer}>
-        <Text style={styles.radiusLabel}>
-          Radius: {Math.round(circleRadius / 1000)} km
-        </Text>
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderTrack}>
-            <View
-              style={[
-                styles.sliderFill,
-                {width: sliderPosition + thumbSize / 2},
-              ]}
-            />
-          </View>
-          <Animated.View
-            style={[styles.sliderThumb, {left: sliderPosition}]}
-            {...panResponder.panHandlers}
-          />
-          <View style={styles.sliderLabels}>
-            <Text style={styles.sliderLabelText}>1</Text>
-            <Text style={styles.sliderLabelText}>2</Text>
-            <Text style={styles.sliderLabelText}>3</Text>
-            <Text style={styles.sliderLabelText}>4</Text>
-            <Text style={styles.sliderLabelText}>5</Text>
-            <Text style={styles.sliderLabelText}>6</Text>
-          </View>
-        </View>
+      {/* SEARCH BAR - TOP */}
+      <View style={styles.searchBarContainer}>
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchType={searchType}
+          setSearchType={setSearchType}
+          isDropdownVisible={isDropdownVisible}
+          setIsDropdownVisible={setIsDropdownVisible}
+          dropdownAnimation={dropdownAnimation}
+        />
       </View>
 
       {/* Full Screen Map */}
@@ -261,21 +188,22 @@ const MapGlobal = ({navigation}) => {
             </View>
           </Marker>
 
-          {/* Circle showing radius */}
+          {/* Circle showing fixed radius */}
           <Circle
             center={location}
             radius={circleRadius}
-            fillColor="rgba(192, 77, 238, 0.15)"
-            strokeColor="rgba(192, 77, 238, 0.5)"
+            fillColor="rgba(57, 162, 174, 0.15)"
+            strokeColor="rgba(57, 162, 174, 0.5)"
             strokeWidth={2}
           />
 
-          {/* Display music listeners */}
-          {musicListeners.map(listener => (
+          {/* Display music listeners from JSON */}
+          {filteredListeners.map(listener => (
             <Marker
               key={listener.id}
               coordinate={listener.coordinate}
-              title={listener.title}>
+              title={listener.title}
+              description={`Listening to ${listener.song}`}>
               <View style={styles.listenerMarkerContainer}>
                 <View style={styles.listenerMarker}>
                   <MusicIcon color="#fff" size={16} />
@@ -286,58 +214,104 @@ const MapGlobal = ({navigation}) => {
         </MapView>
       </View>
 
-      {/* Listener Profiles Horizontal ScrollView */}
-      {musicListeners.length > 0 && (
-        <View style={styles.profilesContainer}>
+      {/* Conditional Rendering: Show either Search Results or Bottom Sheet */}
+      {searchQuery.trim() ? (
+        /* SEARCH RESULTS - Full width cards when searching */
+        <View style={styles.searchResultsContainer}>
           <FlatList
+            ref={flatListRef}
             horizontal
-            data={visibleProfiles}
+            data={filteredListeners}
             keyExtractor={item => item.id}
             showsHorizontalScrollIndicator={false}
-            snapToInterval={300}
+            snapToInterval={width}
             decelerationRate="fast"
-            contentContainerStyle={styles.profilesContent}
-            renderItem={({item}) => (
-              <View style={styles.profileCard}>
-                <View style={styles.profileHeader}>
-                  <View style={styles.profileImageContainer}>
-                    <UserIcon color={PURPLE} size={30} />
-                  </View>
-                  <View style={styles.profileInfo}>
-                    <Text style={styles.profileName}>{item.name}</Text>
-                    <Text style={styles.profileBio} numberOfLines={2}>
-                      {item.bio}
-                    </Text>
-                  </View>
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={({item, index}) => (
+              <View style={styles.searchResultCard}>
+                {/* Numerical indicator */}
+                <View style={styles.indicatorContainer}>
+                  <Text style={styles.indicatorText}>
+                    {index + 1}/{filteredListeners.length}
+                  </Text>
                 </View>
 
-                <View style={styles.currentlyListeningContainer}>
-                  <View style={styles.listeningIcon}>
-                    <MusicIcon color="#fff" size={16} />
+                <View style={styles.cardContent}>
+                  {/* User icon and name */}
+                  <View style={styles.userSection}>
+                    <View style={styles.profileImageContainer}>
+                      <UserIcon color="#fff" size={28} />
+                    </View>
+                    <Text style={styles.profileName}>{item.username}</Text>
                   </View>
-                  <View style={styles.listeningInfo}>
+
+                  {/* Currently listening section */}
+                  <View style={styles.divider} />
+
+                  <View style={styles.listeningSection}>
                     <Text style={styles.listeningLabel}>
                       CURRENTLY LISTENING TO
                     </Text>
-                    <Text style={styles.listeningSong}>{item.song}</Text>
-                    <Text style={styles.listeningArtist}>{item.artist}</Text>
+                    <View style={styles.songContainer}>
+                      <MusicIcon color={SUNSET_ORANGE} size={20} />
+                      <Text style={styles.listeningSong}>{item.song}</Text>
+                    </View>
                   </View>
-                </View>
 
-                <TouchableOpacity style={styles.addFriendButton}>
-                  <AddIcon color="#fff" size={16} />
-                  <Text style={styles.addFriendText}>Add as Friend</Text>
-                </TouchableOpacity>
-
-                <View style={styles.cardIndicator}>
-                  <View style={styles.cardDot} />
-                  <View style={[styles.cardDot, styles.cardDotActive]} />
-                  <View style={styles.cardDot} />
+                  {/* Add friend button */}
+                  <TouchableOpacity style={styles.addFriendButton}>
+                    <AddIcon color="#fff" size={16} />
+                    <Text style={styles.addFriendText}>Add as Friend</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
           />
         </View>
+      ) : (
+        /* BOTTOM SHEET - Normal view with vertical list */
+        <Animated.View
+          style={[styles.bottomSheet, {height: bottomSheetHeight}]}>
+          {/* Header with toggle button */}
+          <View style={styles.bottomSheetHeader}>
+            <Text style={styles.bottomSheetTitle}>Nearby Listeners</Text>
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={toggleBottomSheet}>
+              {isBottomSheetExpanded ? (
+                <CollapseIcon color={DARK_GRAY} size={24} />
+              ) : (
+                <ExpandIcon color={DARK_GRAY} size={24} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Vertical list of listeners */}
+          <ScrollView style={styles.listContainer}>
+            {filteredListeners.map((listener, index) => (
+              <View key={listener.id} style={styles.listItem}>
+                <View style={styles.listItemLeft}>
+                  <View style={styles.smallProfileImage}>
+                    <UserIcon color="#fff" size={18} />
+                  </View>
+                  <View style={styles.listItemTextContainer}>
+                    <Text style={styles.listItemName}>{listener.username}</Text>
+                    <View style={styles.listItemSongContainer}>
+                      <MusicIcon color={SUNSET_ORANGE} size={14} />
+                      <Text style={styles.listItemSong} numberOfLines={1}>
+                        {listener.song}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.listItemAddButton}>
+                  <AddIcon color="#fff" size={14} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        </Animated.View>
       )}
     </View>
   );
@@ -346,7 +320,7 @@ const MapGlobal = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F2EFE7',
   },
   mapContainer: {
     flex: 1,
@@ -354,6 +328,13 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  searchBarContainer: {
+    position: 'absolute',
+    top: STATUSBAR_HEIGHT + 10,
+    left: 16,
+    right: 16,
+    zIndex: 20,
   },
   centerMarkerContainer: {
     width: 30,
@@ -365,7 +346,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#C04DEE',
+    backgroundColor: SUNSET_ORANGE,
     borderWidth: 3,
     borderColor: 'white',
     shadowColor: '#000',
@@ -384,7 +365,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#C04DEE',
+    backgroundColor: SUNSET_ORANGE,
     borderWidth: 2,
     borderColor: 'white',
     alignItems: 'center',
@@ -407,191 +388,193 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  radiusContainer: {
+
+  // BOTTOM SHEET STYLES
+  bottomSheet: {
     position: 'absolute',
-    top: STATUSBAR_HEIGHT + 10,
-    left: 16,
-    right: 76, // Make room for settings button
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#F2EFE7',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -3},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
     zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 15,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
   },
-  radiusLabel: {
-    fontSize: 12,
-    color: '#555',
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  sliderContainer: {
-    height: 40,
-    justifyContent: 'center',
-    width: sliderWidth,
-    alignSelf: 'center',
-  },
-  sliderTrack: {
-    height: 6,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 3,
-    width: sliderWidth,
-  },
-  sliderFill: {
-    height: 6,
-    backgroundColor: PURPLE,
-    borderRadius: 3,
-  },
-  sliderThumb: {
-    width: thumbSize,
-    height: thumbSize,
-    borderRadius: thumbSize / 2,
-    backgroundColor: PURPLE,
-    position: 'absolute',
-    top: 8,
-    marginTop: -thumbSize / 2 + 3,
-    borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  sliderLabels: {
+  bottomSheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: sliderWidth,
-    marginTop: 5,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
   },
-  sliderLabelText: {
-    fontSize: 10,
-    color: '#555',
-    width: 16,
-    textAlign: 'center',
+  bottomSheetTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: DARK_GRAY,
   },
-  profilesContainer: {
+  toggleButton: {
+    padding: 5,
+  },
+  listContainer: {
+    flex: 1,
+  },
+  listItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
+  },
+  listItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  smallProfileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: SUNSET_ORANGE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  listItemTextContainer: {
+    flex: 1,
+  },
+  listItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DARK_GRAY,
+    marginBottom: 3,
+  },
+  listItemSongContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  listItemSong: {
+    fontSize: 13,
+    color: MEDIUM_GRAY,
+    marginLeft: 5,
+  },
+  listItemAddButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: SUNSET_ORANGE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // SEARCH RESULTS STYLES
+  searchResultsContainer: {
     position: 'absolute',
     bottom: 20,
     left: 0,
     right: 0,
-    height: 220,
+    height: height * 0.3,
     zIndex: 10,
   },
-  profilesContent: {
-    paddingHorizontal: 16,
+  searchResultCard: {
+    width: width,
+    height: '100%',
+    padding: 16,
   },
-  profileCard: {
-    width: 300,
-    height: 200,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    marginRight: 15,
+  indicatorContainer: {
+    position: 'absolute',
+    top: 30,
+    right: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    zIndex: 1,
+  },
+  indicatorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: DARK_GRAY,
+  },
+  cardContent: {
+    flex: 1,
+    backgroundColor: '#F2EFE7',
+    borderRadius: 16,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: {width: 0, height: 3},
     shadowOpacity: 0.2,
-    shadowRadius: 10,
+    shadowRadius: 5,
     elevation: 5,
   },
-  profileHeader: {
+  userSection: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
   },
   profileImageContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f0e6f5',
+    backgroundColor: '#F3904F',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
-  },
-  profileInfo: {
-    flex: 1,
+    marginRight: 14,
   },
   profileName: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
+    color: DARK_GRAY,
   },
-  profileBio: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 16,
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginVertical: 12,
   },
-  currentlyListeningContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f0ff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  listeningIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: PURPLE,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  listeningInfo: {
-    flex: 1,
+  listeningSection: {
+    marginBottom: 14,
   },
   listeningLabel: {
-    fontSize: 9,
+    fontSize: 11,
+    color: MEDIUM_GRAY,
+    marginBottom: 8,
     fontWeight: '600',
-    color: PURPLE,
     letterSpacing: 0.5,
-    marginBottom: 2,
+  },
+  songContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   listeningSong: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  listeningArtist: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 18,
+    fontWeight: '600',
+    color: DARK_GRAY,
+    marginLeft: 8,
   },
   addFriendButton: {
     flexDirection: 'row',
-    backgroundColor: PURPLE,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    backgroundColor: '#F3904F',
+
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignSelf: 'center',
   },
   addFriendText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#F2EFE7',
+    fontWeight: '600',
     marginLeft: 8,
-  },
-  cardIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  cardDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#ddd',
-    marginHorizontal: 2,
-  },
-  cardDotActive: {
-    backgroundColor: PURPLE,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    fontSize: 15,
   },
 });
 

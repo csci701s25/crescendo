@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000000', // Black background
+    backgroundColor: '#F2EFE7', // Black background
   },
   videoContainer: {
     width: width,
