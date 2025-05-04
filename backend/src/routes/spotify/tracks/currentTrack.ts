@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { CurrentTrackController } from '../../controllers/spotify/currentTrackController';
+import { CurrentTrackController } from '../../../controllers/spotify/tracks/currentTrackController';
 
 const router = Router();
 const currentTrackController = new CurrentTrackController();

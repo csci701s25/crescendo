@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'; //import types
 import { SpotifyAuthService } from '../../services/auth/spotifyService';
-
+import { UserProfileService } from '../../services/profiles/userProfileService';
 
 export class SpotifyAuthController {
     private spotifyService: SpotifyAuthService;
@@ -28,13 +28,13 @@ export class SpotifyAuthController {
                 data: newUserData,
             });
         } catch (error) {
-            console.error('Failed to handle Spotify callback:', error);
-            res.status(500).json({error: 'Failed to handle Spotify callback'});
+            console.error('Error in handleCallback:', error);
+            res.status(500).json({error: 'Internal server error'});
         }
     };
 
     /**
-     * @returns user profile; //TODO: rework this to pull profile from DB and set up route for it too
+     * @returns user profile fetched from Spotify API + updates "default fields" in user_profiles in DB
      */
     getUserProfile = async(req: Request, res: Response): Promise<void> => {
         try {
@@ -45,10 +45,16 @@ export class SpotifyAuthController {
                 return;
             }
             const userProfile = await this.spotifyService.getUserProfile(accessToken);
+
+            const userProfileService = new UserProfileService();
+            await userProfileService.updateUserProfile(userProfile.id, {
+                profile_image_url: userProfile.images?.[0].url,
+                display_name: userProfile.display_name,
+            });
             res.json(userProfile);
         } catch (error) {
-            console.error('Failed to get user profile:', error);
-            res.status(500).json({error: 'Failed to get user profile'});
+            console.error('Error in getUserProfile:', error);
+            res.status(500).json({error: 'Internal server error'});
         }
     };
 
@@ -58,7 +64,7 @@ export class SpotifyAuthController {
      */
     refreshAccessToken = async(req: Request, res: Response): Promise<void> => {
         try {
-            const { refreshToken } = req.body; //used with post request
+            const { refreshToken } = req.body; // Used with post request
             if(!refreshToken) {
                 res.status(400).json({error: 'Refresh token is required'});
                 return;
@@ -70,8 +76,8 @@ export class SpotifyAuthController {
                 data: newTokenData,
             });
         } catch (error) {
-            console.error('Failed to refresh access token:', error);
-            res.status(500).json({error: 'Failed to refresh access token'});
+            console.error('Error in refreshAccessToken:', error);
+            res.status(500).json({error: 'Internal server error'});
         }
     };
 }

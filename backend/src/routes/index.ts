@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth';
-import currentTrackRoutes from './tracks';
+import currentTrackRoutes from './spotify/tracks';
 
 const router = Router();
 
