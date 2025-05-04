@@ -1,5 +1,5 @@
 import SpotifyWebApi from 'spotify-web-api-node';
-import { supabase } from '../../config/supabase';
+import { supabase } from '../../../config/supabase';
 
 export class CurrentTrackService {
     private spotifyApi: SpotifyWebApi;

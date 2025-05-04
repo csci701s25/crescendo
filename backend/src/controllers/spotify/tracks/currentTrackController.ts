@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { CurrentTrackService } from '../../services/spotify/currentTrackService';
-import { supabase } from '../../config/supabase';
+import { CurrentTrackService } from '../../../services/spotify/tracks/currentTrackService';
+import { supabase } from '../../../config/supabase';
 
 export class CurrentTrackController {
     private currentTrackService: CurrentTrackService;
@@ -33,8 +33,8 @@ export class CurrentTrackController {
             this.currentTrackService.startPollingCurrentTrack(userId, accessToken);
             res.json({ success: true, message: 'Started polling for currently playing track' });
         } catch (error) {
-            console.error('Failed to start polling:', error);
-            res.status(500).json({ error: 'Failed to start polling' });
+            console.error('Error in startPolling:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     };
 
@@ -47,8 +47,8 @@ export class CurrentTrackController {
             this.currentTrackService.stopPollingCurrentTrack(userId);
             res.json({ success: true, message: 'Stopped polling for currently playing track' });
         } catch (error) {
-            console.error('Failed to stop polling:', error);
-            res.status(500).json({ error: 'Failed to stop polling' });
+            console.error('Error in stopPolling:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     };
 
@@ -74,8 +74,8 @@ export class CurrentTrackController {
             const currentTrack = await this.currentTrackService.fetchCurrentTrack(accessToken);
             res.json(currentTrack);
         } catch (error) {
-            console.error('Failed to get current track:', error);
-            res.status(500).json({ error: 'Failed to get current track' });
+            console.error('Error in getCurrentTrack:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     };
 }

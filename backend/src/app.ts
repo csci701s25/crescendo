@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth';
-import tracksRoutes from './routes/tracks';
+import tracksRoutes from './routes/spotify/tracks';
 const app = express();
 
 app.use(cors());
