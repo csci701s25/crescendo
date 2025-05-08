@@ -11,6 +11,7 @@ import {
   Animated,
   ScrollView,
   FlatList,
+  SafeAreaView,
 } from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
 import {
@@ -56,7 +57,7 @@ const STATUSBAR_HEIGHT =
   Platform.OS === 'ios' ? 47 : StatusBar.currentHeight || 0;
 
 // Color scheme
-const ORANGE = '#F3904F'; // Your chosen color
+const ORANGE = '#F3904F';
 const DARK_GRAY = '#333333';
 const MEDIUM_GRAY = '#666666';
 
@@ -85,21 +86,16 @@ const MapScreen = ({navigation}) => {
     listenersData.map(() => (Math.random() * 0.9 + 0.1).toFixed(1)),
   ).current;
 
-  useEffect(() => {
-    // You could add location permissions and get user location here
-    // For example, using expo-location
-  }, []);
+  useEffect(() => {}, []);
 
   // Toggle bottom sheet
   const toggleBottomSheet = () => {
     const newValue = isBottomSheetExpanded ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT;
-
     Animated.spring(bottomSheetHeight, {
       toValue: newValue,
       useNativeDriver: false,
       friction: 8,
     }).start();
-
     setIsBottomSheetExpanded(!isBottomSheetExpanded);
   };
 
@@ -113,7 +109,6 @@ const MapScreen = ({navigation}) => {
   // Filter friends based on search
   const filteredFriends = musicListeners.filter(listener => {
     if (!friendSearchQuery.trim()) return true;
-
     return (
       listener.username &&
       listener.username.toLowerCase().includes(friendSearchQuery.toLowerCase())
@@ -144,7 +139,7 @@ const MapScreen = ({navigation}) => {
         <SettingsIcon color="#fff" size={24} />
       </TouchableOpacity>
 
-      {/* Full Screen Map */}
+      {/* Map View - Note: not using absoluteFill anymore */}
       <View style={styles.mapContainer}>
         <MapView
           style={styles.map}
@@ -185,9 +180,8 @@ const MapScreen = ({navigation}) => {
         </MapView>
       </View>
 
-      {/* Friends Bottom Sheet */}
+      {/* Friends Bottom Sheet*/}
       <Animated.View style={[styles.bottomSheet, {height: bottomSheetHeight}]}>
-        {/* Header with toggle button */}
         <View style={styles.bottomSheetHeader}>
           <Text style={styles.bottomSheetTitle}>Friends</Text>
           <TouchableOpacity
@@ -201,7 +195,6 @@ const MapScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
 
-        {/* Search bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <SearchIcon color={MEDIUM_GRAY} size={20} />
@@ -220,7 +213,6 @@ const MapScreen = ({navigation}) => {
           </View>
         </View>
 
-        {/* Friends list */}
         <FlatList
           data={filteredFriends}
           keyExtractor={item => item.id}
@@ -265,19 +257,22 @@ const MapScreen = ({navigation}) => {
       />
 
       {/* Song Identifier - imported as a standalone component */}
-      <SongIdentifier />
+      {/* <SongIdentifier /> */}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
   mapContainer: {
-    flex: 1,
-    ...StyleSheet.absoluteFillObject,
+    flex: 1, // Use flex instead of absoluteFill
   },
   map: {
     flex: 1,
@@ -335,11 +330,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   // Friends Bottom Sheet
   bottomSheet: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 0, // Add space for tab bar
     left: 0,
     right: 0,
     backgroundColor: '#fff',
