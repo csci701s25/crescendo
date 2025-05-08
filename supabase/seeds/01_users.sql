@@ -1,0 +1,20 @@
+-- INSERT INTO users (
+--     id,
+--     music_provider,
+--     music_provider_id,
+--     provider_data,
+--     created_at
+-- ) VALUES (
+--     '365630b7-9f05-4d73-b162-072523b6cbd8',
+--     'spotify',
+--     'luugx89189zpbfmhrsa23zsr0',
+--     '{
+--       "email": "negativezeroisanumber@gmail.com",
+--       "display_name": "Negativezeroisanumber",
+--       "profile_image_url": "https://i.scdn.co/image/ab6775700000ee850858aab00bbd37622c2165cc",
+--       "access_token": "BQBB77Ids0nAoLwunTT5nYSHxEdwUNX2Iz_4sG8zYfdVKqGrJIy1Is1L2tTqInaOQLUjC09jzyInj1NcyEncbqOE4dLv0jS8giRhHeHoJUyC6ppxoMWC7JSnTQ5hvC1veoXJWUIjsi1KR1_ID1qbytpCrUBn1ROxlo9AI5FMiHRv7suO0Mu33aYY90sIH0VCDOos77PHdQctTlUgPTXJsMX0d8EBxNRXt5ZNMFr_gv9emfGxt6OrOHvMf4UYxk8uS9SF6RtukcmF9wjMibEFwGt-wWlMTdwBVpDkBDTcNa5AF_je2mVF2xfwHrPZGzh3xDPYeMrdqAZbgxn1ARdgdBtVavee4mpJg2Pa2UUn3lw",
+--       "refresh_token": "AQDRFl2o5Np9xIhZU-tzuW5Oq9Jz5wiKrfhiE9L79So7JkRkoPgmRwozhVW-DBYf1WwHKgWzDngcBu9LOg6FZm1VYYceidCa59NE-aF5u0TcfyTPxhx4UF1xREqxp75xlng",
+--       "token_expires_at": "2025-05-01T20:49:14.857+00:00"
+--     }',
+--     '2025-05-01 20:49:14.857+00'
+-- );

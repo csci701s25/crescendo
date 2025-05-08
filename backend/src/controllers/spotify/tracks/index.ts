@@ -1,1 +1,1 @@
-export * from './tracks/currentTrackController';
+export * from './currentTrackController';

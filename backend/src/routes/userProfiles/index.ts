@@ -1,10 +1,10 @@
-import express from 'express';
+import { Router } from 'express';
 import { UserProfileController } from '../../controllers/profiles';
 
-const router = express.Router();
+const router = Router();
 const userProfileController = new UserProfileController();
 
 router.get('/:userId', userProfileController.getUserProfile);
-router.put('/:userId', userProfileController.updateUserProfile);
+router.put('/:userId', userProfileController.upsertUserProfile);
 
 export default router;

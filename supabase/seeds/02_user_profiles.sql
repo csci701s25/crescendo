@@ -1,0 +1,27 @@
+-- INSERT INTO user_profiles (
+--     user_id,
+--     profile_image_url,
+--     display_name,
+--     bio,
+--     followers,
+--     privacy_level,
+--     favorite_song,
+--     favorite_artist,
+--     favorite_album,
+--     created_at,
+--     updated_at
+-- )
+
+-- VALUES (
+--     'luugx89189zpbfmhrsa23zsr0',
+--     'https://i.scdn.co/image/ab6775700000ee850858aab00bbd37622c2165cc',
+--     'Negativezeroisanumber',
+--     'I am a music lover and a software engineer.',
+--     0,
+--     'friends_only',
+--     'Shape of You',
+--     'Ed Sheeran',
+--     'Divide',
+--     '2025-05-01 20:49:14.857+00',
+--     '2025-05-01 20:49:14.857+00'
+-- );

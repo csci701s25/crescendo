@@ -29,30 +29,31 @@ export class UserProfileController {
             console.error('Error in getUserProfile:', error);
             res.status(500).json({error: 'Internal server error'});
         }
-    }
+    };
 
-    updateUserProfile = async (req: Request, res: Response): Promise<void> => {
+
+    upsertUserProfile = async (req: Request, res: Response): Promise<void> => {
         try {
             const { userId } = req.params;
-            const updates = req.body;
+            const profileData = req.body;
+
 
             if (!userId) {
                 res.status(400).json({ error: 'User ID is required' });
                 return;
             }
 
-            const updatedProfile = await this.userProfileService.updateUserProfile(userId, updates);
+            const upsertedProfile = await this.userProfileService.upsertUserProfile(userId, profileData);
 
-            if (!updatedProfile) {
-                res.status(404).json({ error: 'User Profile not found' });
+            if (!upsertedProfile) {
+                res.status(500).json({ error: 'Failed to upsert user profile' });
                 return;
             }
 
-            res.json(updatedProfile);
+            res.json(upsertedProfile);
         } catch (error) {
-            console.error('Error in updateUserProfile:', error);
-            res.status(500).json({error: 'Internal server error'});
+            console.error('Error in upsertUserProfile:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     };
-
 }
