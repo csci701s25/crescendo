@@ -154,7 +154,7 @@ const MapGlobal = ({navigation}) => {
         <SettingsIcon color="#fff" size={24} />
       </TouchableOpacity>
 
-      {/* SEARCH BAR - TOP */}
+      {/* SEARCH BAR - TOP
       <View style={styles.searchBarContainer}>
         <SearchBar
           searchQuery={searchQuery}
@@ -165,7 +165,7 @@ const MapGlobal = ({navigation}) => {
           setIsDropdownVisible={setIsDropdownVisible}
           dropdownAnimation={dropdownAnimation}
         />
-      </View>
+      </View> */}
 
       {/* Full Screen Map */}
       <View style={styles.mapContainer}>

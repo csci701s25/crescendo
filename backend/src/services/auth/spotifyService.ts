@@ -1,5 +1,6 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import { supabase } from '../../config/supabase';
+import { UserProfileService } from '../profiles/userProfileService';
 
 
 interface SpotifyTokens {
@@ -9,7 +10,9 @@ interface SpotifyTokens {
 }
 
 interface SpotifyAuthResponse {
+	id: string;
     tokens: SpotifyTokens;
+	tokenExpiresAt: string;
     profile: {
         id: string;
         email?: string;
@@ -52,25 +55,51 @@ export class SpotifyAuthService {
 		const tokenExpiresAt = new Date();
 		tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + tokens.expiresIn);
 
-		// Store new user data in DB w/ error checking
-		const { error } = await supabase
-		.from('users')
-		.upsert({
-			spotify_id: profile.id,
+		const providerData = {
 			email: profile.email,
 			display_name: profile.display_name,
 			profile_image_url: profile.images?.[0]?.url,
 			access_token: tokens.accessToken,
 			refresh_token: tokens.refreshToken,
 			token_expires_at: tokenExpiresAt.toISOString(),
-		}, { onConflict: 'spotify_id' });
+		};
+
+		// Store new user data in DB w/ error checking
+		const { data: userData, error } = await supabase
+		.from('users')
+		.upsert({
+			music_provider: 'spotify',
+			music_provider_id: profile.id,
+			provider_data: providerData,
+		}, { onConflict: 'music_provider,music_provider_id' })
+		.select()
+		.single();
 
 		if (error) {
 			throw error;
 		}
 
+		const user = userData;
+
+		if (!userData) {
+			throw new Error('User upsert failed');
+		}
+
+		// Create new user profile in DB
+		const userProfileService = new UserProfileService();
+		const newProfile = await userProfileService.upsertUserProfile(user.id, {
+			display_name: profile.display_name,
+			profile_image_url: profile.images?.[0]?.url,
+		});
+
+		if (!newProfile) {
+			throw new Error('Failed to upsert user profile');
+		}
+
 		return {
+            id: user.id,
             tokens,
+			tokenExpiresAt: tokenExpiresAt.toISOString(),
             profile: {
                 id: profile.id,
                 email: profile.email,
@@ -80,27 +109,39 @@ export class SpotifyAuthService {
         };
     }
 
-    // TODO: rework this to pull profile from DB - currently pulling from spotify; set up route for it too
-	/**
-	 * @returns user profile;
-	 */
-	async getUserProfile(accessToken: string) {
-		this.spotifyApi.setAccessToken(accessToken);
-		const { body } = await this.spotifyApi.getMe();
-		return body;
-	}
-
 	/**
 	 * @returns new access token and new expiration time
 	 * NOTE: refresh token lasts forever, but access token expires every hour
 	 */
-	async refreshAccessToken(refreshToken: string): Promise<{accessToken: string, expiresIn: number}> {
+	async refreshAccessToken(refreshToken: string): Promise<{accessToken: string, tokenExpiresAt: string}> {
 		this.spotifyApi.setRefreshToken(refreshToken);
 		const data = await this.spotifyApi.refreshAccessToken();
 
+		const newAccessToken = data.body.access_token;
+		const expiresIn = data.body.expires_in;
+
+		// Calculate new expiration time
+		const tokenExpiresAt = new Date();
+		tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + expiresIn);
+
+		// Update access token and its expiration time in DB
+		const { error } = await supabase
+			.from('users')
+			.update({
+				provider_data: {
+					access_token: newAccessToken,
+					token_expires_at: tokenExpiresAt.toISOString(),
+				},
+			})
+			.eq('provider_data->refresh_token', refreshToken);
+
+		if (error) {
+			throw error;
+		}
+
 		return {
-			accessToken: data.body.access_token,
-			expiresIn: data.body.expires_in,
+			accessToken: newAccessToken,
+			tokenExpiresAt: tokenExpiresAt.toISOString(),
 		};
 	}
 }
