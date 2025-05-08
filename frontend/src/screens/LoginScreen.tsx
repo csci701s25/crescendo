@@ -59,7 +59,7 @@ const LoginScreen = ({navigation}) => {
   const handleLoginSuccess = (userData: SpotifyAuthData) => {
     console.log('User logged in successfully:', userData);
     if (navigation) {
-      navigation.navigate('MapScreen');
+      navigation.navigate('MainTabs');
     }
   };
 
@@ -67,7 +67,7 @@ const LoginScreen = ({navigation}) => {
   const handleSkip = () => {
     console.log('Navigating to MapView');
     if (navigation) {
-      navigation.navigate('MapScreen');
+      navigation.navigate('MainTabs');
     }
   };
 
