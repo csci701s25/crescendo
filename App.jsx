@@ -15,6 +15,7 @@ import MapScreen from './frontend/src/components/mapView/MapView';
 import MapGlobal from './frontend/src/components/mapView/MapGlobal';
 import Settings from './frontend/src/components/mapView/Settings';
 import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
+import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
 
 import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
 import {Ionicons, FontAwesome} from '@expo/vector-icons';
@@ -67,7 +68,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Discover"
-        component={MapGlobal}
+        component={DiscoverScreen}
         options={{
           tabBarIcon: ({color, size}) => (
             <Ionicons name="compass" size={size} color={color} />
