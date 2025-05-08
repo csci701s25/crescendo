@@ -154,7 +154,6 @@ const MapGlobal = ({navigation, route}) => {
 
       {/* Search Bar - Always visible */}
       <View style={{marginTop: STATUSBAR_HEIGHT + 10, zIndex: 1000}}>
-
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
