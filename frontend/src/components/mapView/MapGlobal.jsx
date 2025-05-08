@@ -58,22 +58,21 @@ const SUNSET_ORANGE = '#F3904F';
 const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
 const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
-const MapGlobal = ({navigation}) => {
+const MapGlobal = ({navigation, route}) => {
   // State for center location
   const [location, setLocation] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
   });
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('Songs');
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+
   // Fixed radius (5km)
   const circleRadius = 5000;
   const [isMapReady, setIsMapReady] = useState(false);
-
-  // Search bar state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState('artists'); // 'artists' or 'songs'
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-  const dropdownAnimation = useRef(new Animated.Value(0)).current;
 
   // Bottom sheet state
   const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
@@ -118,12 +117,16 @@ const MapGlobal = ({navigation}) => {
     if (!searchQuery.trim()) return true;
     const searchLower = searchQuery.trim().toLowerCase();
 
-    if (searchType === 'artists') {
+    if (searchType === 'People') {
       return (
         (listener.title &&
           listener.title.toLowerCase().includes(searchLower)) ||
         (listener.username &&
           listener.username.toLowerCase().includes(searchLower))
+      );
+    } else if (searchType === 'Artists') {
+      return (
+        listener.artist && listener.artist.toLowerCase().includes(searchLower)
       );
     } else {
       return listener.song && listener.song.toLowerCase().includes(searchLower);
@@ -149,13 +152,8 @@ const MapGlobal = ({navigation}) => {
         barStyle="dark-content"
       />
 
-      {/* Settings Button (Top right) */}
-      <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
-        <SettingsIcon color="#fff" size={24} />
-      </TouchableOpacity>
-
-      {/* SEARCH BAR - TOP */}
-      <View style={styles.searchBarContainer}>
+      {/* Search Bar - Always visible */}
+      <View style={{marginTop: STATUSBAR_HEIGHT + 10, zIndex: 1000}}>
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -163,7 +161,6 @@ const MapGlobal = ({navigation}) => {
           setSearchType={setSearchType}
           isDropdownVisible={isDropdownVisible}
           setIsDropdownVisible={setIsDropdownVisible}
-          dropdownAnimation={dropdownAnimation}
         />
       </View>
 
@@ -328,13 +325,6 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-  },
-  searchBarContainer: {
-    position: 'absolute',
-    top: STATUSBAR_HEIGHT + 10,
-    left: 16,
-    right: 16,
-    zIndex: 20,
   },
   centerMarkerContainer: {
     width: 30,

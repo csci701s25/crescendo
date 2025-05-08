@@ -1,5 +1,5 @@
 // frontend/src/components/mapView/SearchBar.jsx
-import React, {useRef} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,17 +8,9 @@ import {
   Animated,
   StyleSheet,
 } from 'react-native';
-import {FontAwesome, Ionicons, MaterialIcons} from '@expo/vector-icons';
-
-const UserIcon = ({color = '#F3904F', size = 18}) => (
-  <FontAwesome name="user" size={size} color={color} />
-);
-const MusicIcon = ({color = '#F3904F', size = 18}) => (
-  <Ionicons name="musical-note" size={size} color={color} />
-);
-const SearchIcon = ({color = '#F3904F', size = 18}) => (
-  <Ionicons name="search" size={size} color={color} />
-);
+import {Ionicons} from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import NotificationPanel from './NotificationPanel';
 
 const SearchBar = ({
   searchQuery,
@@ -27,190 +19,232 @@ const SearchBar = ({
   setSearchType,
   isDropdownVisible,
   setIsDropdownVisible,
-  dropdownAnimation,
 }) => {
-  const toggleDropdown = () => {
-    setIsDropdownVisible(!isDropdownVisible);
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const dropdownAnimation = useRef(new Animated.Value(0)).current;
+
+  // Sync local state with parent state
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
+
+  // Handle dropdown animation
+  useEffect(() => {
     Animated.timing(dropdownAnimation, {
-      toValue: isDropdownVisible ? 0 : 1,
+      toValue: isDropdownVisible ? 1 : 0,
       duration: 200,
       useNativeDriver: true,
     }).start();
+  }, [isDropdownVisible, dropdownAnimation]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(localSearchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [localSearchQuery, setSearchQuery]);
+
+  const toggleDropdown = () => {
+    setIsDropdownVisible(!isDropdownVisible);
+    if (isNotificationVisible) {
+      setIsNotificationVisible(false);
+    }
+  };
+
+  const toggleNotifications = () => {
+    setIsNotificationVisible(!isNotificationVisible);
+    if (isDropdownVisible) {
+      setIsDropdownVisible(false);
+    }
   };
 
   const selectSearchType = type => {
     setSearchType(type);
-    toggleDropdown();
+    setIsDropdownVisible(false);
   };
 
   return (
-    <View style={styles.searchContainer}>
-      <View style={styles.searchBarWrapper}>
-        <View style={styles.searchBar}>
-          <TouchableOpacity
-            style={styles.typeSelector}
-            onPress={toggleDropdown}>
-            <Text style={styles.typeSelectorText}>
-              {searchType === 'artists' ? 'Artists' : 'Songs'}
-            </Text>
-            {searchType === 'artists' ? (
-              <UserIcon color="'#F3904F'" size={20} />
-            ) : (
-              <MusicIcon color="#F3904F" size={20} />
-            )}
-          </TouchableOpacity>
-          <View style={styles.searchInputContainer}>
-            <SearchIcon size={24} color="#888" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={`Search ${searchType}...`}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#888"
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <View style={styles.searchTypeContainer}>
+          <TouchableOpacity onPress={toggleDropdown} style={styles.typeButton}>
+            <Text style={styles.typeText}>{searchType}</Text>
+            <Icon
+              name={
+                isDropdownVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down'
+              }
+              size={20}
+              color="#666"
             />
-          </View>
+          </TouchableOpacity>
         </View>
+        <TextInput
+          style={styles.input}
+          placeholder={`Search ${searchType.toLowerCase()}...`}
+          value={localSearchQuery}
+          onChangeText={setLocalSearchQuery}
+          returnKeyType="search"
+        />
+        <TouchableOpacity
+          onPress={toggleNotifications}
+          style={styles.notificationButton}>
+          <Ionicons name="notifications" size={24} color="#666" />
+        </TouchableOpacity>
       </View>
+
       {isDropdownVisible && (
         <Animated.View
           style={[
-            styles.dropdownMenu,
+            styles.dropdown,
             {
               opacity: dropdownAnimation,
               transform: [
                 {
                   translateY: dropdownAnimation.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [10, 0],
+                    outputRange: [-10, 0],
                   }),
                 },
               ],
             },
           ]}>
           <TouchableOpacity
-            style={[
-              styles.dropdownItem,
-              searchType === 'artists' && styles.activeDropdownItem,
-            ]}
-            onPress={() => selectSearchType('artists')}>
-            <UserIcon
-              color={searchType === 'artists' ? '#F3904F' : '#888'}
-              size={24}
-            />
-            <Text
-              style={[
-                styles.dropdownItemText,
-                searchType === 'artists' && styles.activeDropdownItemText,
-              ]}>
-              Artists
-            </Text>
+            style={styles.dropdownItem}
+            onPress={() => selectSearchType('Songs')}>
+            <View style={styles.dropdownItemContent}>
+              <Text
+                style={[
+                  styles.dropdownText,
+                  searchType === 'Songs' && styles.selectedText,
+                ]}>
+                Songs
+              </Text>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.dropdownItem,
-              searchType === 'songs' && styles.activeDropdownItem,
-            ]}
-            onPress={() => selectSearchType('songs')}>
-            <MusicIcon
-              color={searchType === 'songs' ? '#F3904F' : '#888'}
-              size={24}
-            />
-            <Text
-              style={[
-                styles.dropdownItemText,
-                searchType === 'songs' && styles.activeDropdownItemText,
-              ]}>
-              Songs
-            </Text>
+            style={styles.dropdownItem}
+            onPress={() => selectSearchType('Artists')}>
+            <View style={styles.dropdownItemContent}>
+              <Text
+                style={[
+                  styles.dropdownText,
+                  searchType === 'Artists' && styles.selectedText,
+                ]}>
+                Artists
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.dropdownItem}
+            onPress={() => selectSearchType('People')}>
+            <View style={styles.dropdownItemContent}>
+              <Text
+                style={[
+                  styles.dropdownText,
+                  searchType === 'People' && styles.selectedText,
+                ]}>
+                People
+              </Text>
+            </View>
           </TouchableOpacity>
         </Animated.View>
       )}
+
+      <NotificationPanel
+        isVisible={isNotificationVisible}
+        onClose={() => setIsNotificationVisible(false)}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+    left: '5%',
+    width: '90%',
+    zIndex: 1000,
+  },
   searchContainer: {
-    marginTop: 10,
-    marginBottom: 10,
-    zIndex: 20,
-  },
-  searchBarWrapper: {
-    width: '100%',
-  },
-  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: 25,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     elevation: 5,
   },
-  typeSelector: {
+  searchTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  typeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 8,
     borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    width: 110,
+    borderRightColor: '#ddd',
   },
-  typeSelectorText: {
-    fontSize: 16,
-    color: '#555',
-    fontWeight: '500',
-    marginRight: 10,
+  typeText: {
+    fontSize: 14,
+    color: '#666',
+    marginHorizontal: 8,
   },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 15,
-  },
-  searchInput: {
+  input: {
     flex: 1,
     height: 40,
+    marginLeft: 12,
     fontSize: 16,
-    color: '#333',
-    padding: 0,
-    marginLeft: 10,
   },
-  dropdownMenu: {
+  notificationButton: {
+    padding: 8,
+    position: 'relative',
+  },
+  dropdown: {
     position: 'absolute',
-    top: 60,
+    top: '100%',
     left: 0,
     right: 0,
     backgroundColor: 'white',
-    borderRadius: 15,
-    paddingVertical: 10,
+    borderRadius: 20,
+    marginTop: 8,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    overflow: 'hidden',
   },
   dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
   },
-  activeDropdownItem: {
-    backgroundColor: '#f8f0ff',
-  },
-  dropdownItemText: {
-    marginLeft: 15,
-    fontSize: 18,
+  dropdownText: {
+    fontSize: 14,
     color: '#666',
+    marginLeft: 12,
   },
-  activeDropdownItemText: {
-    color: '#F3904F',
-    fontWeight: '500',
+  selectedText: {
+    color: '#007AFF',
+    fontWeight: '600',
   },
 });
 

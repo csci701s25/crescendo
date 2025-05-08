@@ -16,7 +16,7 @@ import MapGlobal from './frontend/src/components/mapView/MapGlobal';
 import Settings from './frontend/src/components/mapView/Settings';
 import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
 
-import {StyleSheet, View, Text} from 'react-native';
+import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
 import {Ionicons, FontAwesome} from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
@@ -62,6 +62,15 @@ const TabNavigator = () => {
         options={{
           tabBarIcon: ({color, size}) => (
             <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Discover"
+        component={MapGlobal}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="compass" size={size} color={color} />
           ),
         }}
       />
