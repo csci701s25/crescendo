@@ -1,4 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
+import { userProfileService } from '../../services/userProfileService';
+import * as SecureStore from 'expo-secure-store';
 import {
   View,
   Text,
@@ -34,22 +36,25 @@ const Settings = ({navigation}) => {
 
   // User data state
   const [userData, setUserData] = useState({
-    name: 'Ayman Khan',
-    bio: 'Music enthusiast from Bronx. I love discovering new artists.',
-    followers: '1,452',
-    artist: 'Frank Ocean',
-    album: 'Blonde',
-    song: 'Nights',
-    locationVisibility: 'Friends only',
+    user_id: '',
+    profile_image_url: '',
+    display_name: '',
+    followers: 0,
+    following: 0,
+    bio: '',
+    privacy_level: 'Friends only',
+    favorite_song: '',
+    favorite_artist: '',
+    favorite_album: '',
   });
 
   // Editing states
   const [isEditing, setIsEditing] = useState({
-    name: false,
+    display_name: false,
     bio: false,
-    artist: false,
-    album: false,
-    song: false,
+    favorite_artist: false,
+    favorite_album: false,
+    favorite_song: false,
   });
 
   // Modal visibility state
@@ -57,6 +62,59 @@ const Settings = ({navigation}) => {
 
   // Visibility options
   const visibilityOptions = ['Everyone', 'Friends only', 'Nobody'];
+
+  // Fetch user profile from DB - only after user has logged in and completed profile setup
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const userProfileStr = await SecureStore.getItemAsync('userProfile');
+      if (!userProfileStr) {
+        return;
+      }
+      // Since we store userProfile as a string in SecureStore
+      const userProfile = JSON.parse(userProfileStr);
+
+      const user_id = await SecureStore.getItemAsync('id');
+      console.log('User id:', user_id);
+
+      // Preset profile image and display name from Spotify profile
+      setUserData(prev => ({
+        ...prev,
+        user_id,
+        profile_image_url: userProfile.profile_image_url || '',
+        display_name: userProfile.display_name || '',
+      }));
+
+      // Fetch follower and following counts from DB!
+      const followers = await userProfileService.getFollowers(user_id);
+      const following = await userProfileService.getFollowing(user_id);
+
+      const profile = await userProfileService.getUserProfile(user_id);
+      if (profile) {
+        console.log('Profile found for user:', user_id);
+        console.log('Profile:', profile);
+        setUserData({
+          user_id: userData.user_id,
+          display_name: profile.display_name || '',
+          bio: profile.bio || '',
+          profile_image_url: profile.profile_image_url || '',
+          followers: followers.count,
+          following: following.count,
+          favorite_artist: profile.favorite_artist || '',
+          favorite_album: profile.favorite_album || '',
+          favorite_song: profile.favorite_song || '',
+          privacy_level:
+            profile.privacy_level === 'everyone'
+              ? 'Everyone'
+              : profile.privacy_level === 'nobody'
+              ? 'Nobody'
+              : 'Friends only',
+        });
+      } else {
+        console.log('No profile found for user:', user_id);
+      }
+    };
+    fetchProfile();
+  }, [userData.user_id]);
 
   // Animation on component mount
   useEffect(() => {
@@ -111,6 +169,40 @@ const Settings = ({navigation}) => {
     });
   };
 
+  // Create or Update new user profile in DB
+  const handleSaveProfile = async () => {
+    try {
+      console.log('Upserting profile for user:', userData.user_id);
+      console.log('User data:', userData);
+      const profileData = {
+        id: userData.user_id,
+        profile_image_url: userData.profile_image_url,
+        display_name: userData.display_name,
+        bio: userData.bio,
+        favorite_artist: userData.favorite_artist,
+        favorite_album: userData.favorite_album,
+        favorite_song: userData.favorite_song,
+        privacy_level:
+          userData.privacy_level === 'Everyone'
+            ? 'everyone'
+            : userData.privacy_level === 'Nobody'
+            ? 'nobody'
+            : 'friends_only',
+
+      };
+      console.log('Upserting profile for user:', userData.user_id);
+      const upserted = await userProfileService.upsertUserProfile(userData.user_id, profileData);
+
+      if (upserted) {
+        console.log('Profile upserted!');
+      } else {
+        console.log('Failed to upsert.');
+      }
+    } catch (error) {
+      console.error('Error upserting profile:', error);
+    }
+  };
+
   // Toggle edit mode for a field
   const toggleEdit = field => {
     setIsEditing({
@@ -123,7 +215,7 @@ const Settings = ({navigation}) => {
   const selectVisibility = option => {
     setUserData({
       ...userData,
-      locationVisibility: option,
+      privacy_level: option,
     });
     setVisibilityModalVisible(false);
   };
@@ -171,6 +263,9 @@ const Settings = ({navigation}) => {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile Settings</Text>
+        <TouchableOpacity style={styles.saveHeaderButton} onPress={handleSaveProfile}>
+          <Text style={styles.saveHeaderButtonText}>Save</Text>
+        </TouchableOpacity>
       </View>
 
       <Animated.View
@@ -187,27 +282,30 @@ const Settings = ({navigation}) => {
           <View style={styles.profileSection}>
             <View style={styles.profileImageWrapper}>
               <Image
-                source={require('../../../assets/images/1.jpg')}
+                source={{uri: userData.profile_image_url}}
                 style={styles.profileImage}
               />
             </View>
 
             <View style={styles.nameContainer}>
-              {isEditing.name ? (
+              {isEditing.display_name ? (
                 <TextInput
                   style={styles.nameInput}
-                  value={userData.name}
-                  onChangeText={text => handleChange('name', text)}
-                  onBlur={() => toggleEdit('name')}
+                  value={userData.display_name}
+                  onChangeText={text => handleChange('display_name', text)}
+                  onBlur={() => toggleEdit('display_name')}
                   autoFocus
                 />
               ) : (
-                <TouchableOpacity onPress={() => toggleEdit('name')}>
-                  <Text style={styles.nameText}>{userData.name}</Text>
+                <TouchableOpacity onPress={() => toggleEdit('display_name')}>
+                  <Text style={styles.nameText}>{userData.display_name}</Text>
                 </TouchableOpacity>
               )}
               <Text style={styles.followersText}>
                 {userData.followers} followers
+              </Text>
+              <Text style={styles.followersText}>
+                {userData.following} following
               </Text>
             </View>
           </View>
@@ -252,19 +350,19 @@ const Settings = ({navigation}) => {
                   <Text style={styles.infoIcon}>🎤</Text>
                   <Text style={styles.infoLabel}>Artist</Text>
                 </View>
-                {isEditing.artist ? (
+                {isEditing.favorite_artist ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.artist}
-                    onChangeText={text => handleChange('artist', text)}
-                    onBlur={() => toggleEdit('artist')}
+                    value={userData.favorite_artist}
+                    onChangeText={text => handleChange('favorite_artist', text)}
+                    onBlur={() => toggleEdit('favorite_artist')}
                     autoFocus
                   />
                 ) : (
                   <TouchableOpacity
                     style={styles.infoValueContainer}
-                    onPress={() => toggleEdit('artist')}>
-                    <Text style={styles.infoValue}>{userData.artist}</Text>
+                    onPress={() => toggleEdit('favorite_artist')}>
+                    <Text style={styles.infoValue}>{userData.favorite_artist}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -275,19 +373,19 @@ const Settings = ({navigation}) => {
                   <Text style={styles.infoIcon}>💿</Text>
                   <Text style={styles.infoLabel}>Album</Text>
                 </View>
-                {isEditing.album ? (
+                {isEditing.favorite_album ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.album}
-                    onChangeText={text => handleChange('album', text)}
-                    onBlur={() => toggleEdit('album')}
+                    value={userData.favorite_album}
+                    onChangeText={text => handleChange('favorite_album', text)}
+                    onBlur={() => toggleEdit('favorite_album')}
                     autoFocus
                   />
                 ) : (
                   <TouchableOpacity
                     style={styles.infoValueContainer}
-                    onPress={() => toggleEdit('album')}>
-                    <Text style={styles.infoValue}>{userData.album}</Text>
+                    onPress={() => toggleEdit('favorite_album')}>
+                    <Text style={styles.infoValue}>{userData.favorite_album}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -298,19 +396,19 @@ const Settings = ({navigation}) => {
                   <Text style={styles.infoIcon}>🎵</Text>
                   <Text style={styles.infoLabel}>Song</Text>
                 </View>
-                {isEditing.song ? (
+                {isEditing.favorite_song ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.song}
-                    onChangeText={text => handleChange('song', text)}
-                    onBlur={() => toggleEdit('song')}
+                    value={userData.favorite_song}
+                    onChangeText={text => handleChange('favorite_song', text)}
+                    onBlur={() => toggleEdit('favorite_song')}
                     autoFocus
                   />
                 ) : (
                   <TouchableOpacity
                     style={styles.infoValueContainer}
-                    onPress={() => toggleEdit('song')}>
-                    <Text style={styles.infoValue}>{userData.song}</Text>
+                    onPress={() => toggleEdit('favorite_song')}>
+                    <Text style={styles.infoValue}>{userData.favorite_song}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -337,14 +435,14 @@ const Settings = ({navigation}) => {
                     styles.visibilityValue,
                     {
                       color:
-                        userData.locationVisibility === 'Everyone'
+                        userData.privacy_level === 'everyone'
                           ? '#4CAF50'
-                          : userData.locationVisibility === 'Friends only'
+                          : userData.privacy_level === 'friends_only'
                           ? '#FFC107'
                           : '#F44336',
                     },
                   ]}>
-                  {userData.locationVisibility}
+                  {userData.privacy_level}
                 </Text>
                 <View style={styles.dropdownIconContainer}>
                   <Text style={styles.dropdownIcon}>▼</Text>
@@ -383,19 +481,19 @@ const Settings = ({navigation}) => {
                 key={option}
                 style={[
                   styles.visibilityOption,
-                  userData.locationVisibility === option &&
+                  userData.privacy_level === option &&
                     styles.selectedOption,
                 ]}
                 onPress={() => selectVisibility(option)}>
                 <Text
                   style={[
                     styles.visibilityOptionText,
-                    userData.locationVisibility === option &&
+                    userData.privacy_level === option &&
                       styles.selectedOptionText,
                   ]}>
                   {option}
                 </Text>
-                {userData.locationVisibility === option && (
+                {userData.privacy_level === option && (
                   <View style={styles.checkmarkContainer}>
                     <Text style={styles.checkmark}>✓</Text>
                   </View>
@@ -479,6 +577,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginLeft: 15,
+  },
+  saveHeaderButton: {
+    marginLeft: 10,
+    backgroundColor: PURPLE,
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 36,
+  },
+  saveHeaderButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   contentContainer: {
     flex: 1,

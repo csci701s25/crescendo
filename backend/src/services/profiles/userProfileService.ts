@@ -6,6 +6,7 @@ export interface UserProfile {
     profile_image_url: string | null;
     display_name: string | null;
     bio: string | null;
+    followers: number;
     privacy_level: 'everyone' | 'friends_only' | 'nobody';
     favorite_song: string | null;
     favorite_artist: string | null;
@@ -15,47 +16,38 @@ export interface UserProfile {
     updated_at: string;
 }
 
-/**
- * GET method: @returns user profile given user_id
- */
-export class UserProfileService {
-    async getUserProfile(userId: string): Promise<UserProfile | null> {
-        try {
-            const { data: profile, error } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
 
-            if (error) {
-                throw error;
-            }
-            return profile;
-        } catch (error) {
-            console.error('Error in getUserProfile:', error);
-            return null;
+export class UserProfileService {
+
+    /**
+     * GET method: @returns user profile given user_id
+     */
+    async getUserProfile(userId: string): Promise<UserProfile | null> {
+        const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error) {
+            throw error;
         }
+        return profile;
     }
 
     /**
-     * PUT method: @returns updated user profile given user_id and updates
+     * PUT method: @returns upserted (insert or update) user profile given user_id and profile data
      */
-    async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
-        try {
-            const { data:profile, error } = await supabase
-                .from('user_profiles')
-                .update(updates)
-                .eq('user_id', userId)
-                .select()
-                .single();
+    async upsertUserProfile(userId: string, profileData: Partial<UserProfile>): Promise<UserProfile | null> {
+        const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .upsert([{ id: userId, ...profileData }], { onConflict: 'id' })
+            .select()
+            .single();
 
-            if (error) {
-                throw error;
-            }
-            return profile;
-        } catch (error) {
-            console.error('Error in updateUserProfile:', error);
-            return null;
+        if (error) {
+            throw error;
         }
+        return profile;
     }
 }

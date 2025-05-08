@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import { authService, SpotifyAuthData } from '../../services/spotifyAuth';
 import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
 
+
 // Guide - Expo Spotify OAuth: https://docs.expo.dev/guides/authentication/#spotify
 
 WebBrowser.maybeCompleteAuthSession();
@@ -71,16 +72,20 @@ const SpotifyLoginButton = ({ onLoginSuccess }: SpotifyLoginButtonProps) => {
   });
   console.log('Redirect URI:', redirectUri);
 
-  // Handle authentication response - wait for code from Spotify, then use code to get tokens and profile
+  // Handle authentication response - wait for code from Spotify, then use code to get refresh token
   const handleAuthCode = useCallback(async (code: string) => { // useCallback to prevent re-rendering since useEffect depends on this handler - https://www.reddit.com/r/reactjs/comments/snek8b/why_memoize_functions_with_reactusecallback/
     try {
       setLoading(true);
       const authResponse = await authService.handleSpotifyCallback(code);
 
       if (authResponse && authResponse.success) {
-        const { tokens, profile } = authResponse.data;
-        await SecureStore.setItemAsync('accessToken', tokens.accessToken);
+        // TODO: Use redux for global state management
+        const { tokens, tokenExpiresAt, profile } = authResponse.data;
+
+        await SecureStore.setItemAsync('id', authResponse.data.id);
         await SecureStore.setItemAsync('refreshToken', tokens.refreshToken);
+        await SecureStore.setItemAsync('accessToken', tokens.accessToken);
+        await SecureStore.setItemAsync('tokenExpiresAt', tokenExpiresAt);
         await SecureStore.setItemAsync('userProfile', JSON.stringify(profile));
 
         if (onLoginSuccess) {

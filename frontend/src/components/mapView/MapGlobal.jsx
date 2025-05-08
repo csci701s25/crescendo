@@ -162,7 +162,7 @@ const MapGlobal = ({navigation, route}) => {
           isDropdownVisible={isDropdownVisible}
           setIsDropdownVisible={setIsDropdownVisible}
         />
-      </View>
+      </View> */}
 
       {/* Full Screen Map */}
       <View style={styles.mapContainer}>

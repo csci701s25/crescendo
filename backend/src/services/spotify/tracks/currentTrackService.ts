@@ -33,7 +33,7 @@ export class CurrentTrackService {
      * Every 60 seconds, fetch the current track and store it in the database
 	 * @returns reference to the interval to stop it later
 	 */
-    startPollingCurrentTrack(userId: string, accessToken: string): NodeJS.Timeout {
+    startPollingCurrentTrack(userId: string, accessToken: string) {
         this.stopPollingCurrentTrack(userId);
 
         const POLLING_INTERVAL = 60000; // 60 seconds
@@ -52,7 +52,6 @@ export class CurrentTrackService {
         }, POLLING_INTERVAL);
 
         this.pollingIntervals.set(userId, intervalId);
-        return intervalId;
     }
 
     /**
@@ -67,7 +66,7 @@ export class CurrentTrackService {
     }
 
     /**
-     * Update the current track in the database
+     * Update the current track in the database - private cuz we only want to call it from the startPollingCurrentTrack method not from outside controller
      */
     private async updateCurrentTrack(userId: string, trackData: SpotifyApi.CurrentlyPlayingResponse) {
         if (!trackData || !trackData.item) {
@@ -76,10 +75,10 @@ export class CurrentTrackService {
         const track = trackData.item;
         if (track.type === 'track') {
             const { error } = await supabase
-                .from('current_tracks')
+                .from('current_user_states')
                 .upsert({
-                    user_id: userId,
-                    track_id: track.id,
+                    id: userId,
+                    current_track_id: track.id,
                     track_name: track.name,
                     artist_name: track.artists.map(artist => artist.name).join(', '),
                     album_name: track.album.name,
@@ -87,7 +86,7 @@ export class CurrentTrackService {
                     is_playing: trackData.is_playing,
                     updated_at: new Date().toISOString(),
                 }, {
-                    onConflict: 'user_id',
+                    onConflict: 'id',
                 });
 
             if (error) {
@@ -96,6 +95,26 @@ export class CurrentTrackService {
             }
         } else {
             console.error('Track is not a valid TrackObjectFull but rather an EpisodeObject:', track);
+        }
+    }
+
+    /**
+     * Update the user location in the database
+     */
+    async updateUserLocation(userId: string, latitude: number, longitude: number) {
+        const { error } = await supabase
+            .from('current_user_states')
+            .upsert({
+                id: userId,
+                latitude,
+                longitude,
+            }, {
+                onConflict: 'id',
+            });
+
+        if (error) {
+            console.error('Error updating user location:', error);
+            throw error;
         }
     }
 }
