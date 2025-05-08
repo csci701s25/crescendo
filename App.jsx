@@ -8,61 +8,102 @@
 import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-
 import * as SecureStore from 'expo-secure-store';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import LoginScreen from './frontend/src/screens/LoginScreen';
 import SplashScreen from './frontend/src/components/intro/SplashScreen';
 import MapScreen from './frontend/src/components/mapView/MapView';
 import MapGlobal from './frontend/src/components/mapView/MapGlobal';
 import Settings from './frontend/src/components/mapView/Settings';
 import { authService } from './frontend/src/services/spotifyAuth';
+import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
 
-import {StyleSheet, View, TouchableOpacity} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+
+import {StyleSheet, View, Text} from 'react-native';
+import {Ionicons, FontAwesome} from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 
-// View toggle button components
-const ViewToggleButtons = ({isGlobal, onToggle}) => {
-  const PURPLE = '#C04DEE';
-  const SUNSET_ORANGE = '#F3904F';
+// Colors
+const ORANGE = '#F3904F';
+const PURPLE = '#C04DEE';
 
+// Tab Navigator Component
+const TabNavigator = () => {
   return (
-    <View style={styles.viewToggleButtons}>
-      {/* Local View Button */}
-      <TouchableOpacity
-        style={[
-          styles.viewToggleButton,
-          !isGlobal ? styles.activeButton : styles.inactiveButton,
-        ]}
-        onPress={() => (!isGlobal ? null : onToggle(false))}>
-        <Ionicons
-          name="location"
-          size={24}
-          color={!isGlobal ? '#fff' : SUNSET_ORANGE}
-        />
-      </TouchableOpacity>
-
-      {/* Global View Button */}
-      <TouchableOpacity
-        style={[
-          styles.viewToggleButton,
-          isGlobal ? styles.activeButton : styles.inactiveButton,
-        ]}
-        onPress={() => (isGlobal ? null : onToggle(true))}>
-        <Ionicons
-          name="globe-outline"
-          size={24}
-          color={isGlobal ? '#fff' : SUNSET_ORANGE}
-        />
-      </TouchableOpacity>
-    </View>
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: ORANGE,
+        tabBarInactiveTintColor: '#888',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#EFEFEF',
+          height: 85,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+        },
+      }}>
+      <Tab.Screen
+        name="People"
+        component={MapGlobal}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="people" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Friends"
+        component={MapScreen}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Discover"
+        component={MapGlobal}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="compass" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="chatbubble" size={size} color={color} />
+          ),
+          tabBarBadge: 2, // Example badge for unread messages
+          tabBarBadgeStyle: {backgroundColor: PURPLE},
+        }}
+      />
+      <Tab.Screen
+        name="Me"
+        component={Settings}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <FontAwesome name="user" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 };
 
+// A simple dummy component we can use if needed
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [isGlobalView, setIsGlobalView] = useState(true);
 
   // Check if user is already authenticated... skip login screen // TODO: uncomment for demo to show login process
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -94,41 +135,28 @@ function App() {
     setIsLoading(false);
   };
 
-  // Custom map screen that can toggle between local and global view
-  const MapScreenWithToggle = ({navigation, route}) => {
-    const toggleMapView = showGlobal => {
-      setIsGlobalView(showGlobal);
-    };
-
+  if (isLoading) {
     return (
       <View style={styles.container}>
-        {isGlobalView ? (
-          <MapGlobal navigation={navigation} />
-        ) : (
-          <MapScreen navigation={navigation} />
-        )}
-        <ViewToggleButtons isGlobal={isGlobalView} onToggle={toggleMapView} />
+        <SplashScreen onAnimationComplete={handleAnimationComplete} />
       </View>
     );
-  };
+  }
 
   return (
     <NavigationContainer>
-      {isLoading ? (
-        <View style={styles.container}>
-          <SplashScreen onAnimationComplete={handleAnimationComplete} />
-        </View>
-      ) : (
-        <Stack.Navigator
-        initialRouteName={isAuthenticated ? 'MapScreen' : 'LoginScreen'}  // TODO: change to login screen for demo
-          screenOptions={{
-            headerShown: false,
-          }}>
-          <Stack.Screen name="LoginScreen" component={LoginScreen} />
-          <Stack.Screen name="MapScreen" component={MapScreenWithToggle} />
-          <Stack.Screen name="Settings" component={Settings} />
-        </Stack.Navigator>
-      )}
+      <Stack.Navigator
+        initialRouteName={isAuthenticated ? 'MainTabs' : 'LoginScreen'}
+        screenOptions={{
+          headerShown: false,
+        }}>
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen
+          name="MainTabs"
+          component={TabNavigator}
+          options={{gestureEnabled: false}}
+        />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
@@ -137,36 +165,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  viewToggleButtons: {
-    position: 'absolute',
-    top: '50%', // Center vertically
-    right: 16,
-    marginTop: -60, // Adjust based on button heights
-    zIndex: 1000,
-    alignItems: 'center',
-  },
-  viewToggleButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  activeButton: {
-    backgroundColor: '#F3904F',
-    borderColor: '#F3904F',
-  },
-  inactiveButton: {
-    backgroundColor: 'white',
-    borderColor: '#F3904F',
   },
 });
 
