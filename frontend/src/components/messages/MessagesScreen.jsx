@@ -20,37 +20,9 @@ const messages = [
   {
     id: '1',
     sender: 'Ayman Khan',
-    message: 'Hey, what song are you listening to?',
+    message: 'Feature is coming soon!',
     time: '10:30 AM',
     unread: true,
-  },
-  {
-    id: '2',
-    sender: 'Hedavam Solano',
-    message: 'Did you check out that new album?',
-    time: 'Yesterday',
-    unread: false,
-  },
-  {
-    id: '3',
-    sender: 'Mike',
-    message: "Let's meet up at the concert tonight!",
-    time: 'Wed',
-    unread: false,
-  },
-  {
-    id: '4',
-    sender: 'Sarah',
-    message: 'I shared a playlist with you',
-    time: 'Tue',
-    unread: true,
-  },
-  {
-    id: '5',
-    sender: 'David',
-    message: 'Thanks for the song recommendation',
-    time: 'Mon',
-    unread: false,
   },
 ];
 
