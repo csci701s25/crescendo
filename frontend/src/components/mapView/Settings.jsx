@@ -34,12 +34,12 @@ const Settings = ({navigation}) => {
 
   // User data state
   const [userData, setUserData] = useState({
-    name: 'Ayman Khan',
-    bio: 'Music enthusiast from Bronx. I love discovering new artists.',
-    followers: '1,452',
-    artist: 'Frank Ocean',
-    album: 'Blonde',
-    song: 'Nights',
+    name: 'An',
+    bio: 'Love GnR, lately been listening to Bruce Springsteen.',
+    followers: '1,065',
+    artist: 'Guns and Roses',
+    album: 'Apetite for Destruction',
+    song: 'Paradise City',
     locationVisibility: 'Friends only',
   });
 
