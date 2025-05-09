@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'; //import types
 import { SpotifyAuthService } from '../../services/auth/spotifyService';
-import { UserProfileService } from '../../services/profiles/userProfileService';
 
 export class SpotifyAuthController {
     private spotifyService: SpotifyAuthService;
@@ -29,31 +28,6 @@ export class SpotifyAuthController {
             });
         } catch (error) {
             console.error('Error in handleCallback:', error);
-            res.status(500).json({error: 'Internal server error'});
-        }
-    };
-
-    /**
-     * @returns user profile fetched from Spotify API + updates "default fields" in user_profiles in DB
-     */
-    getUserProfile = async(req: Request, res: Response): Promise<void> => {
-        try {
-            // Authorization:'Bearer ' + accessToken (we're just pulling the accessToken)
-            const accessToken = req.headers.authorization?.split(' ')[1];
-            if(!accessToken) {
-                res.status(401).json({error: 'Unauthorized'});
-                return;
-            }
-            const userProfile = await this.spotifyService.getUserProfile(accessToken);
-
-            const userProfileService = new UserProfileService();
-            await userProfileService.updateUserProfile(userProfile.id, {
-                profile_image_url: userProfile.images?.[0].url,
-                display_name: userProfile.display_name,
-            });
-            res.json(userProfile);
-        } catch (error) {
-            console.error('Error in getUserProfile:', error);
             res.status(500).json({error: 'Internal server error'});
         }
     };

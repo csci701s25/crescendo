@@ -84,7 +84,7 @@ const LoginScreen = ({navigation}) => {
   const handleLoginSuccess = userData => {
     console.log('User logged in successfully:', userData);
     if (navigation) {
-      navigation.replace('MainTabs');
+      navigation.navigate('MainTabs');
     }
   };
 
@@ -92,7 +92,7 @@ const LoginScreen = ({navigation}) => {
   const handleSkip = () => {
     console.log('Navigating to MainTabs');
     if (navigation) {
-      navigation.replace('MainTabs');
+      navigation.navigate('MainTabs');
     }
   };
 

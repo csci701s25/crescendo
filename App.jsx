@@ -5,10 +5,12 @@
  * @format
  */
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import * as SecureStore from 'expo-secure-store';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import LoginScreen from './frontend/src/screens/LoginScreen';
 import SplashScreen from './frontend/src/components/intro/SplashScreen';
 import MapScreen from './frontend/src/components/mapView/MapView';
 import MapGlobal from './frontend/src/components/mapView/MapGlobal';
@@ -16,6 +18,7 @@ import Settings from './frontend/src/components/mapView/Settings';
 import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
 import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
 import OnboardingScreen from './frontend/src/screens/OnboardingScreen';
+import {authService} from './frontend/src/services/spotifyAuth';
 
 import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
 import {Ionicons, FontAwesome} from '@expo/vector-icons';

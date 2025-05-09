@@ -1,6 +1,6 @@
 CREATE TABLE listening_history (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id TEXT REFERENCES users(spotify_id),
+    user_id UUID REFERENCES users(id),
     track_id TEXT,
     track_name TEXT,
     artist_name TEXT,

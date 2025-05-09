@@ -70,6 +70,7 @@ const MapGlobal = ({navigation, route}) => {
   const [searchType, setSearchType] = useState('Songs');
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
+
   // Fixed radius (5km)
   const circleRadius = 5000;
   const [isMapReady, setIsMapReady] = useState(false);
@@ -154,6 +155,7 @@ const MapGlobal = ({navigation, route}) => {
 
       {/* Search Bar - Always visible */}
       <View style={{marginTop: STATUSBAR_HEIGHT + 10, zIndex: 1000}}>
+
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
