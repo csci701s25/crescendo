@@ -27,7 +27,7 @@
     "axios": "^1.8.4",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
-    "expo": "^52.0.0",
+    "expo": "^53.0.9",
     "expo-auth-session": "^6.0.3",
     "expo-av": "~15.0.2",
     "expo-blur": "^14.1.4",
