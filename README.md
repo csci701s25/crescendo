@@ -10,14 +10,11 @@ This is your main project README, which will contain instructions on how to buil
 
 This initial project template contains a few workflows (defined in `.github/workflows`) to help with your project development:
 
-1. `checks.yml`: A workflow that runs anytime a PR is opened, or a new commit is pushed to a branch with an open PR. At some point in the semester, please modify/add steps for the checks you wish to run (e.g. adding checks for tests & style). Your repository is configured to require all status checks to pass before merging a PR.
+1. `checks.yml`: A workflow that runs anytime a PR is opened, or a new commit is pushed to a branch with an open PR. Eventually, we will use ESLint and testing. The repository is configured to require all status checks to pass before merging a PR.
 
-2. `merge.yml`: A workflow that runs when a commit is pushed to the `main` branch, like when a Pull Request is merged. If you need to deploy your project, you should add some steps in this file. When this workflow succeeds, a message will be sent to your project channel in Slack.
+2. `merge.yml`: A workflow that runs when a commit is pushed to the `main` branch, like when a Pull Request is merged. When this workflow succeeds, a message will be sent to your project channel in Slack.
 
 3. `issue.yml`: A workflow that will notify your project channel in Slack that a new Issue was created.
-
-In general, your development workflow will be to open one (or more) Issues in any given week, write the code in the coming week, and then open and merge one (or more) PRs that address the corresponding Issue(s) from the previous week. When opening an Issue & Pull Request, please complete the relevant fields in the description (the templates are defined in the `.github` directory).
-
 
 # Tech Stack
 
@@ -29,26 +26,21 @@ In general, your development workflow will be to open one (or more) Issues in an
 ![Static Badge](https://img.shields.io/badge/Node.js-red?logo=Node.js&labelColor=%23505050&color=%235E9F4E)
 
 
-
-
-
-
-
-
 # Abstract (or About/Description): foreword & summary.
-# Installing (or Building): how to build your project. How to deploy your project?
-# Examples: how to use your project (app? API? exe?).
-# [optional] Contributing: how should other people contribute? (PR, style, tools).
-# Acknowledgements (if you had help from other people or projects)
-# License - do we need this??
+While traditional social media connects people through content consumption and creation, Crescendo connects people through their listening habits. 
+Ultimately, our application maps what users nearby and friends are currently enjoying, creating a geosocial layer over everyday music listening.
+
+# Installing
+
+Our project has yet to be deployed. But, We aim to deploy our client-side code through [Expo](https://docs.expo.dev/build/setup/) and host our backend Node.js server on Vercel.
+For now, the following steps will apply to building Crescendo through [Expo Go](https://expo.dev/go) which expedites the development process.
+
+## Expo Go - Getting Started
+
+> **_NOTE:_** Make sure you have completed the [Set Up Your Environment](https://docs.expo.dev/get-started/set-up-your-environment/) guide before proceeding. Select Expo Go when asked "How would you like to develop?"
 
 
-# Expo - Getting Started
-
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://docs.expo.dev/get-started/set-up-your-environment/) guide before proceeding.
-> //TODO: Elaborate on what type of build
-
-## Compile and run your app
+### Compile and run your app
 
 ```sh
 # for Android
@@ -60,7 +52,25 @@ npx expo run:ios
 
 If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
 
-## Learn More
+### Learn More
 
 To learn more about **Expo**, check out the [Getting Started Docs](https://docs.expo.dev/get-started/introduction/):
+
+## Setting up the Backend
+
+### Setting up the DB for local/prod
+
+## Setting up the Frontend
+
+# Examples
+
+-- TODO: make a vid w/ all the features!!
+
+# Acknowledgements
+We would like to thank Professor [Philip Caplan](https://www.middlebury.edu/college/people/philip-caplan) for his guidance throughout the semester, especially regarding the ethical considerations of our project and the effective communication techniques to pitch our project and provide progress updates. 
+
+# License
+We plan to keep the repository closed-source, but in the event we open-source it, we will use the [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/).
+
+
 
