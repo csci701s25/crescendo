@@ -42,6 +42,7 @@ export class SpotifyAuthService {
 	 */
     async handleCallback(code: string): Promise<SpotifyAuthResponse> {
         const data = await this.spotifyApi.authorizationCodeGrant(code);
+		console.log('we in here', data);
 
 		// Retrieve new user data
         const tokens = {
