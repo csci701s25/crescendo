@@ -57,19 +57,17 @@ const SpotifyLoginButton = ({ onLoginSuccess }: SpotifyLoginButtonProps) => {
         'user-follow-read',
       ],
       usePKCE: false,
-      redirectUri: makeRedirectUri({
-        scheme: 'crescendo',
-        path: 'auth/callback',
-      }),
+      redirectUri: 'https://crescendo-fork.onrender.com/api/auth/spotify/callback',
+      //makeRedirectUri({
+      //   scheme: 'crescendo',
+      //   path: 'auth/callback',
+      // }),
     },
     discovery
   );
 
   //print redirect uri
-  const redirectUri = makeRedirectUri({
-    scheme: 'crescendo',
-    path: 'auth/callback',
-  });
+  const redirectUri = 'https://crescendo-fork.onrender.com/api/auth/spotify/callback';
   console.log('Redirect URI:', redirectUri);
 
   // Handle authentication response - wait for code from Spotify, then use code to get refresh token
