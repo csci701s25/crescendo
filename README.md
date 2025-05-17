@@ -1,118 +1,94 @@
-# [Project Title]
-## Middlebury College, CSCI 701 (Senior Seminar, Spring 2025)
 
-This is your main project README which will contain instructions on how to build and run your project. You can delete and overwrite the contents of this README file at any point. We'll talk about what should be included in this file later in the semester.
+<img src="https://github.com/user-attachments/assets/a3055d34-0123-4097-95d8-8c633e1bbde5" width="300" />
+
+# A Location-Based Music Discovery App
+
+
+## Started at Middlebury College for CSCI 701 (Senior Seminar, Spring 2025)
 
 This initial project template contains a few workflows (defined in `.github/workflows`) to help with your project development:
 
-1. `checks.yml`: A workflow that runs anytime a PR is opened, or a new commit is pushed to a branch with an open PR. At some point in the semester, please modify/add steps for the checks you wish to run (e.g. adding checks for tests & style). Your repository is configured to require all status checks to pass before merging a PR.
+1. `checks.yml`: A workflow that runs anytime a PR is opened, or a new commit is pushed to a branch with an open PR. Eventually, we will use ESLint and testing. The repository is configured to require all status checks to pass before merging a PR.
 
-2. `merge.yml`: A workflow that runs when a commit is pushed to the `main` branch, like when a Pull Request is merged. If you need to deploy your project, you should add some steps in this file. When this workflow succeeds, a message will be sent to your project channel in Slack.
+2. `merge.yml`: A workflow that runs when a commit is pushed to the `main` branch, like when a Pull Request is merged. When this workflow succeeds, a message will be sent to your project channel in Slack.
 
 3. `issue.yml`: A workflow that will notify your project channel in Slack that a new Issue was created.
 
-In general, your development workflow will be to open one (or more) Issues in any given week, write the code in the coming week, and then open and merge one (or more) PRs that address the corresponding Issue(s) from the previous week. When opening an Issue & Pull Request, please complete the relevant fields in the description (the templates are defined in the `.github` directory).
+# Tech Stack
 
-Your first task is to create/review/merge a Pull Request that addresses Issue #1, which consists of creating a `CODE_OF_CONDUCT.md` file for your project.
+![Static Badge](https://img.shields.io/badge/React%20Native-%2361DBFB?logo=React&labelColor=black)
+![Static Badge](https://img.shields.io/badge/Expo-%23ffffff?logo=Expo&labelColor=black)
+![Static Badge](https://img.shields.io/badge/PostgreSQL-%23326790?logo=PostgreSQL&labelColor=D3D3D3)
+![Static Badge](https://img.shields.io/badge/Supabase-black?logo=Supabase&labelColor=black&color=%2340CE8D)
+![Static Badge](https://img.shields.io/badge/Express-black?logo=Express)
+![Static Badge](https://img.shields.io/badge/Node.js-red?logo=Node.js&labelColor=%23505050&color=%235E9F4E)
 
 
-**React-Native**
+# Abstract (or About/Description): foreword & summary.
+While traditional social media connects people through content consumption and creation, Crescendo connects people through their listening habits. 
+Ultimately, our application maps what users nearby and friends are currently enjoying, creating a geosocial layer over everyday music listening.
 
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Installing
 
-# Getting Started
+Our project has yet to be deployed, we are running into major issues with hosting. But, We aim to deploy our client-side code through [Expo](https://docs.expo.dev/build/setup/) and host our backend Node.js server on Render.com.
+For now, the following steps will apply to building Crescendo through [Expo Go](https://expo.dev/go) which expedites the development process.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Expo Go - Getting Started
 
-## Step 1: Start Metro
+> **_NOTE:_** Make sure you have completed the [Set Up Your Environment](https://docs.expo.dev/get-started/set-up-your-environment/) guide before proceeding. Select Expo Go when asked "How would you like to develop?"
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+### Compile and run your app
 
 ```sh
-# Using npm
-npm run android
+# for Android
+npx expo run:android
 
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+# for IOS
+npx expo run:ios
 ```
 
 If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### Learn More
 
-## Step 3: Modify your app
+To learn more about **Expo**, check out the [Getting Started Docs](https://docs.expo.dev/get-started/introduction/):
 
-Now that you have successfully run the app, let's make changes!
+## Setting up the Backend
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Inside the backend folder, create a ```.env``` and ```.env.production``` file.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### Setting up the DB for local development
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+We followed this [tutorial](https://www.youtube.com/watch?v=BceVcpiOlKM&t=719s) to set up Supabase local dev.
+It features ways to setup models through migrations and seed data.
 
-## Congratulations! :tada:
+In the ```.env``` file, copy and paste:
 
-You've successfully run and modified your React Native App. :partying_face:
+```
+# Local Supabase (DB) credentials
+SUPABASE_URL=http://localhost:54321
+SUPABASE_ANON_KEY=YOUR_ANON_KEY (will see how to get from tutorial)
 
-### Now what?
+# Spotify API credentials
+SPOTIFY_CLIENT_ID=ac244bca6e2940e4bc0fd936c2f537af
+SPOTIFY_CLIENT_SECRET=200c39338534426ca84cad4e46c23ae0
+SPOTIFY_REDIRECT_URI=exp://10.3.99.237:8081/--/auth/callback -- Disregard this! It will be different for you! See NOTE below
+SPOTIFY_TEST_REFRESH_TOKEN=AQC5dftVZk1PVy_cWO3Ib0chEc64gvn017rgfz80eH9X43hRXIlIdPHQdm74ezC44HCO0G2cvv7rpANQOY1koQ72YX-L3Anjj_TrLTDdPVwnQZhKA-NIgoxnulc5o9miQ88
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+# Port configuration
+PORT=3000
+```
+**_NOTE:_** After running npm run start on the root folder, launch with your preferred simulator and proceed with authenticate, check the console log to see your Redirect URI and report it to any of the original devs as it must be added to the Spotify Dashboard associated with the Crescendo app.
 
-# Troubleshooting
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+# Examples
 
-# Learn More
+-- TODO: make a vid w/ all the features!!
 
-To learn more about React Native, take a look at the following resources:
+# Acknowledgements
+We would like to thank Professor [Philip Caplan](https://www.middlebury.edu/college/people/philip-caplan) for his guidance throughout the semester, especially regarding the ethical considerations of our project and the effective communication techniques to pitch our project and provide progress updates. 
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+# License
+We plan to keep the repository closed-source, but in the event we open-source it, we will use the [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/).
 

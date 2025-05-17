@@ -17,16 +17,8 @@ import MapGlobal from './frontend/src/components/mapView/MapGlobal';
 import Settings from './frontend/src/components/mapView/Settings';
 import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
 import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
-import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import { authService } from './frontend/src/services/spotifyAuth';
-import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
-//import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
-// import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
-import { authService } from './frontend/src/services/spotifyAuth';
-//import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
-
-
-import {StyleSheet, View, Text} from 'react-native';
 import {Ionicons, FontAwesome} from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
