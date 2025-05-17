@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
 import { authService, SpotifyAuthData } from '../../services/spotifyAuth';
 import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
-
+import { useUserTracking } from '../../hooks/useUserTracking';
 
 // Guide - Expo Spotify OAuth: https://docs.expo.dev/guides/authentication/#spotify
 
@@ -110,6 +110,8 @@ const SpotifyLoginButton = ({ onLoginSuccess }: SpotifyLoginButtonProps) => {
       handleAuthCode(code);
     }
   }, [response, handleAuthCode]);
+
+  //useUserTracking(true);
 
 const handleLogin = useCallback(() => {
   promptAsync();

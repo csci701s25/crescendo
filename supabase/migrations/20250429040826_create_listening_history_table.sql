@@ -1,4 +1,4 @@
-CREATE TABLE listening_history (
+CREATE TABLE listening_history ( -- TODO: rename to smth more akin to plural
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES users(id),
     track_id TEXT,

@@ -1,6 +1,7 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import { supabase } from '../../config/supabase';
 import { UserProfileService } from '../profiles/userProfileService';
+import { User } from '@supabase/supabase-js';
 
 
 interface SpotifyTokens {
@@ -108,6 +109,7 @@ export class SpotifyAuthService {
             },
         };
     }
+
 
 	/**
 	 * @returns new access token and new expiration time

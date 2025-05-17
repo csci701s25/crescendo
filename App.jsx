@@ -20,6 +20,10 @@ import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
 import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
 import { authService } from './frontend/src/services/spotifyAuth';
 import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
+//import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
+// import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
+import { authService } from './frontend/src/services/spotifyAuth';
+//import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
 
 
 import {StyleSheet, View, Text} from 'react-native';
@@ -107,30 +111,30 @@ const TabNavigator = () => {
 // A simple dummy component we can use if needed
 function App() {
   const [isLoading, setIsLoading] = useState(true);
- 
-  // Check if user is already authenticated... skip login screen // TODO: uncomment for demo to show login process
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // If no refresh token, user has never been authenticated
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
-        console.log('refreshToken', refreshToken);
-        if (!refreshToken) {
-          setIsAuthenticated(false);
-          return;
-        }
 
-        // Try to get a valid access token using refresh token
-        const accessToken = await authService.getValidAccessToken(refreshToken);
-        setIsAuthenticated(!!accessToken);
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-        setIsAuthenticated(false);
-      }
-    };
-    checkAuth();
-  }, []);
+  // // Check if user is already authenticated... skip login screen // TODO: uncomment for demo to show login process
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       // If no refresh token, user has never been authenticated
+  //       const refreshToken = await SecureStore.getItemAsync('refreshToken');
+  //       console.log('refreshToken', refreshToken);
+  //       if (!refreshToken) {
+  //         setIsAuthenticated(false);
+  //         return;
+  //       }
+
+  //       // Try to get a valid access token using refresh token
+  //       const accessToken = await authService.getValidAccessToken(refreshToken);
+  //       setIsAuthenticated(!!accessToken);
+  //     } catch (error) {
+  //       console.error('Error checking authentication:', error);
+  //       setIsAuthenticated(false);
+  //     }
+  //   };
+  //   checkAuth();
+  // }, []);
 
   // Function to be called when splash animation completes
   const handleAnimationComplete = () => {
@@ -149,7 +153,7 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={isAuthenticated ? 'MainTabs' : 'LoginScreen'}
+        initialRouteName={'LoginScreen'}
         screenOptions={{
           headerShown: false,
         }}>
