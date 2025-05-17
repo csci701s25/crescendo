@@ -16,6 +16,10 @@ import MapScreen from './frontend/src/components/mapView/MapView';
 import MapGlobal from './frontend/src/components/mapView/MapGlobal';
 import Settings from './frontend/src/components/mapView/Settings';
 import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
+import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
+import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
+import { authService } from './frontend/src/services/spotifyAuth';
+import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
 //import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
 // import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
 import { authService } from './frontend/src/services/spotifyAuth';
@@ -107,7 +111,7 @@ const TabNavigator = () => {
 // A simple dummy component we can use if needed
 function App() {
   const [isLoading, setIsLoading] = useState(true);
- 
+
   // // Check if user is already authenticated... skip login screen // TODO: uncomment for demo to show login process
   // const [isAuthenticated, setIsAuthenticated] = useState(false);
   // useEffect(() => {
