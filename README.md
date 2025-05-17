@@ -56,7 +56,34 @@ To learn more about **Expo**, check out the [Getting Started Docs](https://docs.
 
 ## Setting up the Backend
 
-### Setting up the DB for local/prod
+Inside the backend folder, create a ```.env``` and ```.env.production``` file.
+
+### Setting up the DB for local development
+
+We followed this (tutorial)[https://www.youtube.com/watch?v=BceVcpiOlKM&t=719s]
+
+To set up the 
+
+In the ```.env``` file, copy and paste:
+
+```
+# Local Supabase (DB) credentials
+SUPABASE_URL=http://localhost:54321
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+
+# Spotify API credentials
+SPOTIFY_CLIENT_ID=ac244bca6e2940e4bc0fd936c2f537af
+SPOTIFY_CLIENT_SECRET=200c39338534426ca84cad4e46c23ae0
+SPOTIFY_REDIRECT_URI=exp://10.3.99.237:8081/--/auth/callback
+SPOTIFY_TEST_REFRESH_TOKEN=AQC5dftVZk1PVy_cWO3Ib0chEc64gvn017rgfz80eH9X43hRXIlIdPHQdm74ezC44HCO0G2cvv7rpANQOY1koQ72YX-L3Anjj_TrLTDdPVwnQZhKA-NIgoxnulc5o9miQ88
+
+# Port configuration
+PORT=3000
+```
+
+
+
+
 
 ## Setting up the Frontend
 
