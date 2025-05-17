@@ -26,6 +26,9 @@ import UserProfileModal from './UserProfileModal.jsx';
 import listenersData from '../../data/listeners.json';
 import {FontAwesome5} from '@expo/vector-icons';
 
+import { useUserStates } from '../../hooks/useUserStates.ts';
+
+
 // Icon components
 const UserIcon = ({color = '#888', size = 18}) => (
   <FontAwesome name="user" size={size} color={color} />
@@ -66,9 +69,11 @@ const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
 const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
 const MapScreen = ({navigation}) => {
+  const { me, friends } = useUserStates('public');
+
   const [location, setLocation] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
+    latitude: me?.latitude || 37.7749,
+    longitude: me?.longitude || -122.4194,
   });
   const [isMapReady, setIsMapReady] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -103,16 +108,18 @@ const MapScreen = ({navigation}) => {
     setIsMapReady(true);
   };
 
-  // Use listeners from JSON
-  const musicListeners = listenersData;
+
 
   // Filter friends based on search
-  const filteredFriends = musicListeners.filter(listener => {
-    if (!friendSearchQuery.trim()) return true;
-    return (
-      listener.username &&
-      listener.username.toLowerCase().includes(friendSearchQuery.toLowerCase())
-    );
+  const filteredFriends = friends.filter(listener => {
+    if (!friendSearchQuery.trim()) {
+      return true;
+    }
+    // TODO: don't have username yet!
+    // return (
+    //   listener.username &&
+    //   listener.username.toLowerCase().includes(friendSearchQuery.toLowerCase())
+    // );
   });
 
   const handleMarkerPress = user => {
@@ -163,12 +170,12 @@ const MapScreen = ({navigation}) => {
           </Marker>
 
           {/* Display other music listeners */}
-          {musicListeners.map(listener => (
+          {filteredFriends.map(listener => (
             <Marker
               key={listener.id}
-              coordinate={listener.coordinate}
-              title={listener.title}
-              description={`Listening to ${listener.song}`}
+              coordinate={listener.location}
+              // title={listener.title} // TODO: need info from user_profiles table
+              description={`Listening to ${listener.song_name}`}
               onPress={() => handleMarkerPress(listener)}>
               <View style={styles.listenerMarkerContainer}>
                 <View style={styles.listenerMarker}>
@@ -224,11 +231,11 @@ const MapScreen = ({navigation}) => {
                   <UserIcon color="#fff" size={18} />
                 </View>
                 <View style={styles.friendInfo}>
-                  <Text style={styles.friendName}>{item.username}</Text>
+                  {/* <Text style={styles.friendName}>{item.username}</Text> - need info from user_profiles table */}
                   <View style={styles.friendSongContainer}>
                     <MusicIcon color={ORANGE} size={12} />
                     <Text style={styles.friendSong} numberOfLines={1}>
-                      {item.song}
+                      {item.song_name}
                     </Text>
                   </View>
                   <Text style={styles.distanceText}>

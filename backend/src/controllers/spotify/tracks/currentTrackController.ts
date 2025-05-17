@@ -19,8 +19,8 @@ export class CurrentTrackController {
             // Retrieve access token from DB
             const { data, error } = await supabase
                 .from('users')
-                .select('access_token')
-                .eq('spotify_id', userId)
+                .select('provider_data')
+                .eq('id', userId)
                 .single();
 
             if (error || !data) {
@@ -28,7 +28,7 @@ export class CurrentTrackController {
                 return;
             }
 
-            const accessToken = data.access_token;
+            const accessToken = data.provider_data.access_token;
 
             this.currentTrackService.startPollingCurrentTrack(userId, accessToken);
             res.json({ success: true, message: 'Started polling for currently playing track' });
@@ -79,3 +79,4 @@ export class CurrentTrackController {
         }
     };
 }
+
