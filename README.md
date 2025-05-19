@@ -105,10 +105,14 @@ To run our app in local dev mode:
 
 
 # Examples
+A quick video showing some of our progress
+
+https://github.com/user-attachments/assets/bdcc0212-b1e8-4ed8-8cbb-4fb239c83692
+
 
 
 # Acknowledgements
-We would like to thank Professor [Philip Caplan](https://www.middlebury.edu/college/people/philip-caplan) for his guidance throughout the semester, especially regarding the ethical considerations of our project and the effective communication techniques to pitch our project and provide progress updates. 
+We would like to thank Professor [Philip Caplan](https://www.middlebury.edu/college/people/philip-caplan) for his guidance throughout the semester, especially regarding the ethical considerations of our project and the effective communication techniques that helped us pitch our project and provide more detailed progress updates. 
 
 # License
 We plan to keep the repository closed-source, but in the event we open-source it, we will use the [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/).
