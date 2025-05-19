@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
 import { authService, SpotifyAuthData } from '../../services/spotifyAuth';
 import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
-
+import { useUserTracking } from '../../hooks/useUserTracking';
 
 // Guide - Expo Spotify OAuth: https://docs.expo.dev/guides/authentication/#spotify
 
@@ -57,19 +57,17 @@ const SpotifyLoginButton = ({ onLoginSuccess }: SpotifyLoginButtonProps) => {
         'user-follow-read',
       ],
       usePKCE: false,
-      redirectUri: makeRedirectUri({
-        scheme: 'crescendo',
-        path: 'auth/callback',
-      }),
+      redirectUri: 'https://crescendo-fork.onrender.com/api/auth/spotify/callback',
+      //makeRedirectUri({
+      //   scheme: 'crescendo',
+      //   path: 'auth/callback',
+      // }),
     },
     discovery
   );
 
   //print redirect uri
-  const redirectUri = makeRedirectUri({
-    scheme: 'crescendo',
-    path: 'auth/callback',
-  });
+  const redirectUri = 'https://crescendo-fork.onrender.com/api/auth/spotify/callback';
   console.log('Redirect URI:', redirectUri);
 
   // Handle authentication response - wait for code from Spotify, then use code to get refresh token
@@ -110,6 +108,8 @@ const SpotifyLoginButton = ({ onLoginSuccess }: SpotifyLoginButtonProps) => {
       handleAuthCode(code);
     }
   }, [response, handleAuthCode]);
+
+  //useUserTracking(true);
 
 const handleLogin = useCallback(() => {
   promptAsync();

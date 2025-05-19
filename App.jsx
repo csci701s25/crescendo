@@ -21,6 +21,7 @@ import OnboardingScreen from './frontend/src/screens/OnboardingScreen';
 import {authService} from './frontend/src/services/spotifyAuth';
 
 import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
+
 import {Ionicons, FontAwesome} from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();

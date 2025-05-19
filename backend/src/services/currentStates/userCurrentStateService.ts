@@ -7,8 +7,10 @@ export interface UserCurrentState {
     artist_name: string;
     album_name: string;
     album_image_url: string;
-    latitude: number;
-    longitude: number;
+    location: {
+        latitude: number;
+        longitude: number;
+    };
     is_playing: boolean;
 }
 
@@ -25,6 +27,8 @@ export class UserCurrentStateService {
             .single();
 
         if (error) {
+            // TODO: keep adding console.errors everywhere -- really helps with debugging
+            console.error('Error in getUserState:', error);
            throw error;
         }
         return state;
@@ -34,13 +38,24 @@ export class UserCurrentStateService {
      * PUT method: @returns upserted (insert or update) user state given user id and state data
      */
     async upsertUserState(userId: string, stateData: Partial<UserCurrentState>): Promise<UserCurrentState[]> {
+        console.log('upserting user state for userId:', userId); // not reached
+        console.log('stateData', stateData);
+        // Format location data to match PostGIS geometry as expected by gis schema
+        const formattedData = {
+            id: userId,
+            ...stateData,
+            location: stateData.location ?
+            `POINT(${stateData.location.longitude} ${stateData.location.latitude})` :
+            undefined,
+        };
         const { data: state, error } = await supabase
             .from('current_user_states')
-            .upsert([{ id: userId, ...stateData }], { onConflict: 'id' })
+            .upsert([formattedData], { onConflict: 'id' })
             .select()
             .single();
 
         if (error) {
+            console.error('Error in upsertUserState:', error);
             throw error;
         }
         return state;

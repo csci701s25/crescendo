@@ -5,6 +5,12 @@ create schema if not exists "gis";
 -- Example: enable the "postgis" extension
 create extension postgis with schema "gis";
 
+-- Enable usage of the "gis" schema for all roles; // TODO: this follows same pattern supabase GUI did for public schema but i should rlly look into this 
+GRANT USAGE ON SCHEMA "gis" TO "postgres";
+GRANT USAGE ON SCHEMA "gis" TO "anon";
+GRANT USAGE ON SCHEMA "gis" TO "authenticated";
+GRANT USAGE ON SCHEMA "gis" TO "service_role";
+
 CREATE TABLE current_user_states (
     id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     current_track_id TEXT,

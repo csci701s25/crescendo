@@ -14,6 +14,32 @@ In terms of location privacy, the review of snapshot and continuous location-bas
 
 Ultimately, Crescendo is a social music discovery app that enables users to explore music around them in real-time, engage with nearby listeners, and participate in community-driven events while offering promotional opportunities to businesses and stakeholders in the music industry through music trends.
 
+# Methodology
+
+Crescendo uses a full-stack system with React Native (via Expo) for the front end, Express with Node.js for the back end, and Supabase/PostgreSQL for managing the database. We chose these tools to make the app run smoothly on iOS and Android. We aimed to build a real-time social music app that updates as people move and listen to music while keeping user privacy and control at the center.
+
+![System Design](systemdesign.png) 
+
+![Frontend Architecture](frontendarchitecture.png)
+
+Users interact with the app through a clean and simple frontend UI, which includes screens like Discover, Global Map, Messages, and Settings. The frontend sends requests through services (like SpotifyAuth, userProfileService, and userTrackingService), which then call backend API routes to get or send data.
+
+After a user logs in through Spotify OAuth, their current song and location are tracked in the background and sent to the backend. The backend has controllers that manage these requests and services that talk to the database to update or retrieve data. This ensures that the app reflects what users are listening to and where they are in real time.
+
+![Database Schema](schema.png)
+
+Our database stores information in a structured way. For example, users and user_profiles keep track of who the user is and what they like, while current_user_states stores their latest song and location. The listening_events table logs past listening history, and connections tracks who users are friends with. This setup lets users easily find nearby listeners, accept friend requests, and see shared music interests.
+
+Since location is a key feature, we use various techniques to keep users safe. Exact GPS locations are stored on the server, but we use a radius and suggestion cards on the frontend so users are not too exposed. People can also control their visibility, such as only showing their location to friends or remaining completely anonymous.
+
+Ultimately, our approach keeps the system organized, smooths real-time updates, and gives users control over their experience, turning everyday music listening into a fun and safe social activity.
+
+# Limitations and Future Work
+
+We are still working on correctly updating our frontend Map Views by tracking database changes associated with location and music changes. We have yet to build the recommendation system for public view, as our intended approach might clash with Spotify’s Developer Policy. We might resort to cosine similarity of listening histories + proximity + mutuality to avoid pulling track audio features and training AI models, which Spotify frowns upon.
+
+On the feature front, we want a separate category for followers and close friends to implement chatting functionality and develop the discover page functionality soon. From a developer perspective, we need to implement testing and add proper security measures beyond Spotify authentication and Expo’s Secure Storage; we are looking into JWT tokens for transmitting user data.
+
 # Ethics Statement
 
 ## 1. Possible Futures
@@ -52,6 +78,8 @@ Crescendo unintentionally becomes a tool for stalking, harassment, or misuse. Ev
 
 - **Structure/Justice Lens**:  
   We are committed to equitable outcomes: all users, regardless of background, should have equal control over their presence and safety. No group should have to deal with more risks or harm than others (like marginalized users facing more harassment). Structural tools, such as contextual reporting and strong moderation, aim to uphold justice across the platform.
+
+In designing Crescendo, we prioritized user control, privacy, and real-time social interaction. We authenticated through Spotify to avoid managing sensitive credentials and anchor the app in a widely used music ecosystem. Using Spotify also introduced a significant limitation: users who do not use Spotify are currently excluded from the platform. This limits inclusivity within our app's community. Another key limitation is our reliance on accurate GPS data for proximity-based features; this may exclude users in areas with weak location signals or those unwilling to share location data, potentially narrowing the social aspect of the app. Our current privacy measures (storing unencrypted data on the server) are not foolproof against determined attackers. We acknowledge the challenge of building a truly abuse-proof platform. We recognize that future development must include continuous audits, robust moderation tools, and inclusive design practices to uphold the ethical standards we set out to achieve.
 
 # References
 

@@ -20,6 +20,7 @@ import {
   AntDesign,
   Feather,
 } from '@expo/vector-icons';
+import { useUserStates } from '../../hooks/useUserStates.ts';
 import listenersData from '../../data/listeners.json';
 import SearchBar from './SearchBar';
 
@@ -59,10 +60,12 @@ const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
 const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
 const MapGlobal = ({navigation, route}) => {
+  const { users, me } = useUserStates('public');
+
   // State for center location
   const [location, setLocation] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
+    latitude: me?.latitude || 37.7749,
+    longitude: me?.longitude || -122.4194,
   });
 
   // Search state
@@ -110,27 +113,28 @@ const MapGlobal = ({navigation, route}) => {
     setIsBottomSheetExpanded(!isBottomSheetExpanded);
   };
 
-  // Use listeners from JSON
-  const musicListeners = listenersData;
-
-  // Filter listeners based on search
-  const filteredListeners = musicListeners.filter(listener => {
-    if (!searchQuery.trim()) return true;
+  // Filter nearby users based search based on song, artist
+  // TODO: For ppl we woudl need to use current_user_states id to get the user's displayname from user_profiles table
+  const filteredListeners = users.filter(listener => {
+    if (!searchQuery.trim()) {
+      return true;
+    }
     const searchLower = searchQuery.trim().toLowerCase();
 
-    if (searchType === 'People') {
+    // if (searchType === 'People') {
+    //   return (
+    //     (listener.title &&
+    //       listener.title.toLowerCase().includes(searchLower)) ||
+    //     (listener.username &&
+    //       listener.username.toLowerCase().includes(searchLower))
+    //   );
+    // }
+    if (searchType === 'Artists') {
       return (
-        (listener.title &&
-          listener.title.toLowerCase().includes(searchLower)) ||
-        (listener.username &&
-          listener.username.toLowerCase().includes(searchLower))
-      );
-    } else if (searchType === 'Artists') {
-      return (
-        listener.artist && listener.artist.toLowerCase().includes(searchLower)
+        listener.artist_name && listener.artist_name.toLowerCase().includes(searchLower)
       );
     } else {
-      return listener.song && listener.song.toLowerCase().includes(searchLower);
+      return listener.song_name && listener.song_name.toLowerCase().includes(searchLower);
     }
   });
 
@@ -155,7 +159,6 @@ const MapGlobal = ({navigation, route}) => {
 
       {/* Search Bar - Always visible */}
       <View style={{marginTop: STATUSBAR_HEIGHT + 10, zIndex: 1000}}>
-
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -200,9 +203,9 @@ const MapGlobal = ({navigation, route}) => {
           {filteredListeners.map(listener => (
             <Marker
               key={listener.id}
-              coordinate={listener.coordinate}
-              title={listener.title}
-              description={`Listening to ${listener.song}`}>
+              coordinate={listener.location}
+              // title={listener.display} // TODO: need info from user_profiles table
+              description={`Listening to ${listener.song_name}`}>
               <View style={styles.listenerMarkerContainer}>
                 <View style={styles.listenerMarker}>
                   <MusicIcon color="#fff" size={16} />
@@ -295,11 +298,11 @@ const MapGlobal = ({navigation, route}) => {
                     <UserIcon color="#fff" size={18} />
                   </View>
                   <View style={styles.listItemTextContainer}>
-                    <Text style={styles.listItemName}>{listener.username}</Text>
+                    {/* <Text style={styles.listItemName}>{listener.username}</Text> - need info from user_profiles table */}
                     <View style={styles.listItemSongContainer}>
                       <MusicIcon color={SUNSET_ORANGE} size={14} />
                       <Text style={styles.listItemSong} numberOfLines={1}>
-                        {listener.song}
+                        {listener.song_name}
                       </Text>
                     </View>
                   </View>

@@ -1,6 +1,7 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import { supabase } from '../../config/supabase';
 import { UserProfileService } from '../profiles/userProfileService';
+import { User } from '@supabase/supabase-js';
 
 
 interface SpotifyTokens {
@@ -41,6 +42,7 @@ export class SpotifyAuthService {
 	 */
     async handleCallback(code: string): Promise<SpotifyAuthResponse> {
         const data = await this.spotifyApi.authorizationCodeGrant(code);
+		console.log('we in here', data);
 
 		// Retrieve new user data
         const tokens = {
@@ -108,6 +110,7 @@ export class SpotifyAuthService {
             },
         };
     }
+
 
 	/**
 	 * @returns new access token and new expiration time
