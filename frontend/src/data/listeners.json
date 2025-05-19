@@ -1,58 +1,338 @@
 [
   {
     "id": "1",
-    "username": "Ayman Khan",
+    "username": "An A.",
     "coordinate": {"latitude": 37.78925, "longitude": -122.4344},
-    "title": "John",
-    "song": "Don't Trust Bitches",
-    "friends": ["2", "3"]
+    "album": "John",
+    "song": "November Rain",
+    "friends": ["2", "3", "43"]
   },
   {
     "id": "2",
-    "username": "Hedavam Solano",
+    "username": "Hedavam",
     "coordinate": {"latitude": 37.78625, "longitude": -122.4304},
-    "title": "Emma",
+    "album": "Emma",
     "song": "Yesterday",
-    "friends": ["1"]
+    "friends": ["1", "43"]
   },
   {
     "id": "3",
-    "username": "Mike",
+    "username": "Ayman",
     "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
-    "title": "Mike",
-    "song": "Cruel Summer",
-    "friends": ["1"]
+    "album": "Mike",
+    "song": "Atlantis",
+    "friends": ["1", "43"]
   },
   {
     "id": "4",
     "username": "Mike",
     "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
-    "title": "Mike",
+    "album": "Mike",
     "song": "Fade to Black",
-    "friends": ["1"]
+    "friends": ["1", "43"]
   },
   {
     "id": "5",
     "username": "Mike",
     "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
-    "title": "Mike",
-    "song": "Don't Cry",
-    "friends": ["1"]
+    "album": "Mike",
+    "song": "November Rain",
+    "friends": ["1", "43"]
   },
   {
     "id": "6",
     "username": "Shaq",
     "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
-    "title": "Mike",
+    "album": "Mike",
     "song": "Cruel Summer",
-    "friends": ["1"]
+    "friends": ["1", "43"]
   },
   {
     "id": "7",
     "username": "JP",
     "coordinate": {"latitude": 37.78725, "longitude": -122.4364},
-    "title": "Mike",
-    "song": "Don't Trust Bitches",
-    "friends": ["1"]
+    "album": "Mike",
+    "song": "Atlantis",
+    "friends": ["1", "43"]
+  },
+  {
+    "id": "8",
+    "username": "Slash",
+    "coordinate": {"latitude": 37.7893, "longitude": -122.434},
+    "album": "Appetite for Destruction",
+    "song": "Sweet Child O' Mine",
+    "friends": ["43"]
+  },
+  {
+    "id": "9",
+    "username": "Axl",
+    "coordinate": {"latitude": 37.78935, "longitude": -122.4341},
+    "album": "Appetite for Destruction",
+    "song": "Paradise City",
+    "friends": []
+  },
+  {
+    "id": "10",
+    "username": "Duff",
+    "coordinate": {"latitude": 37.7894, "longitude": -122.4342},
+    "album": "Appetite for Destruction",
+    "song": "Welcome to the Jungle",
+    "friends": []
+  },
+  {
+    "id": "11",
+    "username": "Izzy",
+    "coordinate": {"latitude": 37.78945, "longitude": -122.4343},
+    "album": "G N' R Lies",
+    "song": "Patience",
+    "friends": []
+  },
+  {
+    "id": "12",
+    "username": "Steven",
+    "coordinate": {"latitude": 37.7895, "longitude": -122.4344},
+    "album": "Use Your Illusion I",
+    "song": "Don't Cry",
+    "friends": []
+  },
+  {
+    "id": "13",
+    "username": "Chris",
+    "coordinate": {"latitude": 37.7863, "longitude": -122.43},
+    "album": "Viva la Vida or Death and All His Friends",
+    "song": "Viva la Vida",
+    "friends": []
+  },
+  {
+    "id": "14",
+    "username": "Jonny",
+    "coordinate": {"latitude": 37.78635, "longitude": -122.4301},
+    "album": "X&Y",
+    "song": "Fix You",
+    "friends": []
+  },
+  {
+    "id": "15",
+    "username": "Guy",
+    "coordinate": {"latitude": 37.7864, "longitude": -122.4302},
+    "album": "Parachutes",
+    "song": "Yellow",
+    "friends": []
+  },
+  {
+    "id": "16",
+    "username": "Will",
+    "coordinate": {"latitude": 37.78645, "longitude": -122.4303},
+    "album": "A Rush of Blood to the Head",
+    "song": "The Scientist",
+    "friends": []
+  },
+  {
+    "id": "17",
+    "username": "Phil",
+    "coordinate": {"latitude": 37.7865, "longitude": -122.4304},
+    "album": "A Rush of Blood to the Head",
+    "song": "Clocks",
+    "friends": []
+  },
+  {
+    "id": "18",
+    "username": "Danny",
+    "coordinate": {"latitude": 37.7873, "longitude": -122.436},
+    "album": "#3",
+    "song": "Hall of Fame",
+    "friends": []
+  },
+  {
+    "id": "19",
+    "username": "Mark",
+    "coordinate": {"latitude": 37.78735, "longitude": -122.4361},
+    "album": "The Script",
+    "song": "The Man Who Can't Be Moved",
+    "friends": []
+  },
+  {
+    "id": "20",
+    "username": "Glen",
+    "coordinate": {"latitude": 37.7874, "longitude": -122.4362},
+    "album": "The Script",
+    "song": "Breakeven",
+    "friends": []
+  },
+  {
+    "id": "21",
+    "username": "ScriptFan",
+    "coordinate": {"latitude": 37.78745, "longitude": -122.4363},
+    "album": "No Sound Without Silence",
+    "song": "Superheroes",
+    "friends": []
+  },
+  {
+    "id": "22",
+    "username": "ScriptLover",
+    "coordinate": {"latitude": 37.7875, "longitude": -122.4364},
+    "album": "Science & Faith",
+    "song": "For the First Time",
+    "friends": []
+  },
+  {
+    "id": "23",
+    "username": "AkonFan",
+    "coordinate": {"latitude": 37.7883, "longitude": -122.435},
+    "album": "Trouble",
+    "song": "Lonely",
+    "friends": []
+  },
+  {
+    "id": "24",
+    "username": "LockedUp",
+    "coordinate": {"latitude": 37.78835, "longitude": -122.4351},
+    "album": "Trouble",
+    "song": "Locked Up",
+    "friends": []
+  },
+  {
+    "id": "25",
+    "username": "SmackThat",
+    "coordinate": {"latitude": 37.7884, "longitude": -122.4352},
+    "album": "Konvicted",
+    "song": "Smack That",
+    "friends": []
+  },
+  {
+    "id": "26",
+    "username": "RightNow",
+    "coordinate": {"latitude": 37.78845, "longitude": -122.4353},
+    "album": "Freedom",
+    "song": "Right Now (Na Na Na)",
+    "friends": []
+  },
+  {
+    "id": "27",
+    "username": "Beautiful",
+    "coordinate": {"latitude": 37.7885, "longitude": -122.4354},
+    "album": "Freedom",
+    "song": "Beautiful",
+    "friends": []
+  },
+  {
+    "id": "28",
+    "username": "Taylor",
+    "coordinate": {"latitude": 37.7896, "longitude": -122.4345},
+    "album": "Fearless",
+    "song": "Love Story",
+    "friends": []
+  },
+  {
+    "id": "29",
+    "username": "Olivia",
+    "coordinate": {"latitude": 37.78965, "longitude": -122.4346},
+    "album": "1989",
+    "song": "Blank Space",
+    "friends": []
+  },
+  {
+    "id": "30",
+    "username": "Emma",
+    "coordinate": {"latitude": 37.7897, "longitude": -122.4347},
+    "album": "1989",
+    "song": "Shake It Off",
+    "friends": []
+  },
+  {
+    "id": "31",
+    "username": "Sophia",
+    "coordinate": {"latitude": 37.78975, "longitude": -122.4348},
+    "album": "Fearless",
+    "song": "You Belong With Me",
+    "friends": []
+  },
+  {
+    "id": "32",
+    "username": "Ava",
+    "coordinate": {"latitude": 37.7898, "longitude": -122.4349},
+    "album": "Midnights",
+    "song": "Anti-Hero",
+    "friends": []
+  },
+  {
+    "id": "33",
+    "username": "Stefani",
+    "coordinate": {"latitude": 37.7903, "longitude": -122.434},
+    "album": "The Fame",
+    "song": "Poker Face",
+    "friends": []
+  },
+  {
+    "id": "34",
+    "username": "Natali",
+    "coordinate": {"latitude": 37.79035, "longitude": -122.4341},
+    "album": "The Fame Monster",
+    "song": "Bad Romance",
+    "friends": []
+  },
+  {
+    "id": "35",
+    "username": "Angela",
+    "coordinate": {"latitude": 37.7904, "longitude": -122.4342},
+    "album": "A Star Is Born",
+    "song": "Shallow",
+    "friends": []
+  },
+  {
+    "id": "36",
+    "username": "Vera",
+    "coordinate": {"latitude": 37.79045, "longitude": -122.4343},
+    "album": "The Fame",
+    "song": "Just Dance",
+    "friends": []
+  },
+  {
+    "id": "37",
+    "username": "Elena",
+    "coordinate": {"latitude": 37.7905, "longitude": -122.4344},
+    "album": "Chromatica",
+    "song": "Rain On Me",
+    "friends": []
+  },
+  {
+    "id": "38",
+    "username": "Freddie",
+    "coordinate": {"latitude": 37.7913, "longitude": -122.434},
+    "album": "A Night at the Opera",
+    "song": "Bohemian Rhapsody",
+    "friends": []
+  },
+  {
+    "id": "39",
+    "username": "Brian",
+    "coordinate": {"latitude": 37.79135, "longitude": -122.4341},
+    "album": "Jazz",
+    "song": "Don't Stop Me Now",
+    "friends": []
+  },
+  {
+    "id": "40",
+    "username": "Roger",
+    "coordinate": {"latitude": 37.7914, "longitude": -122.4342},
+    "album": "News of the World",
+    "song": "We Will Rock You",
+    "friends": []
+  },
+  {
+    "id": "41",
+    "username": "JohnD",
+    "coordinate": {"latitude": 37.79145, "longitude": -122.4343},
+    "album": "The Game",
+    "song": "Another One Bites the Dust",
+    "friends": []
+  },
+  {
+    "id": "42",
+    "username": "QueenFan",
+    "coordinate": {"latitude": 37.7915, "longitude": -122.4344},
+    "album": "A Day at the Races",
+    "song": "Somebody to Love",
+    "friends": []
   }
 ]

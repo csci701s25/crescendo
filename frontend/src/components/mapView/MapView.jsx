@@ -109,7 +109,13 @@ const MapScreen = ({navigation}) => {
   };
 
 
-
+  // Use listeners from JSON
+  // [mock up, this needs to be used id @MapView.jsx]
+  // Only show listeners who have '43' in their friends list
+  const musicListeners = listenersData.filter(
+    listener => listener.friends && listener.friends.includes('43'),
+  );
+  
   // Filter friends based on search
   const filteredFriends = friends.filter(listener => {
     if (!friendSearchQuery.trim()) {

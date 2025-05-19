@@ -1,27 +1,26 @@
 import React, {useEffect} from 'react';
 import {View, StyleSheet} from 'react-native';
 import VideoAnimation from './VideoAnimation';
+import {useNavigation} from '@react-navigation/native';
 
-const SplashScreen = ({onAnimationComplete}) => {
+const SplashScreen = () => {
+  const navigation = useNavigation();
+
   useEffect(() => {
     console.log('SplashScreen mounted');
 
     // This is a backup timeout in case animation fails to trigger onAnimationComplete
     const backupTimeout = setTimeout(() => {
       console.log('SplashScreen backup timeout triggered');
-      if (onAnimationComplete) {
-        onAnimationComplete();
-      }
+      navigation.replace('Onboarding');
     }, 6000); // 6 second backup
 
     return () => clearTimeout(backupTimeout);
-  }, [onAnimationComplete]);
+  }, [navigation]);
 
   const handleAnimationComplete = () => {
-    console.log('Animation completed, moving to signup');
-    if (onAnimationComplete) {
-      onAnimationComplete();
-    }
+    console.log('Animation completed, moving to onboarding');
+    navigation.replace('Onboarding');
   };
 
   return (

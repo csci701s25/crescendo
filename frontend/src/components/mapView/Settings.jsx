@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
-import { userProfileService } from '../../services/userProfileService';
+import {userProfileService} from '../../services/userProfileService';
 import * as SecureStore from 'expo-secure-store';
 import {
   View,
@@ -36,16 +36,13 @@ const Settings = ({navigation}) => {
 
   // User data state
   const [userData, setUserData] = useState({
-    user_id: '',
-    profile_image_url: '',
-    display_name: '',
-    followers: 0,
-    following: 0,
-    bio: '',
-    privacy_level: 'Friends only',
-    favorite_song: '',
-    favorite_artist: '',
-    favorite_album: '',
+    name: 'An',
+    bio: 'Love GnR, lately been listening to Bruce Springsteen.',
+    followers: '1,065',
+    artist: 'Guns and Roses',
+    album: 'Apetite for Destruction',
+    song: 'Paradise City',
+    locationVisibility: 'Friends only',
   });
 
   // Editing states
@@ -188,10 +185,12 @@ const Settings = ({navigation}) => {
             : userData.privacy_level === 'Nobody'
             ? 'nobody'
             : 'friends_only',
-
       };
       console.log('Upserting profile for user:', userData.user_id);
-      const upserted = await userProfileService.upsertUserProfile(userData.user_id, profileData);
+      const upserted = await userProfileService.upsertUserProfile(
+        userData.user_id,
+        profileData,
+      );
 
       if (upserted) {
         console.log('Profile upserted!');
@@ -263,7 +262,9 @@ const Settings = ({navigation}) => {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile Settings</Text>
-        <TouchableOpacity style={styles.saveHeaderButton} onPress={handleSaveProfile}>
+        <TouchableOpacity
+          style={styles.saveHeaderButton}
+          onPress={handleSaveProfile}>
           <Text style={styles.saveHeaderButtonText}>Save</Text>
         </TouchableOpacity>
       </View>
@@ -362,7 +363,9 @@ const Settings = ({navigation}) => {
                   <TouchableOpacity
                     style={styles.infoValueContainer}
                     onPress={() => toggleEdit('favorite_artist')}>
-                    <Text style={styles.infoValue}>{userData.favorite_artist}</Text>
+                    <Text style={styles.infoValue}>
+                      {userData.favorite_artist}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -385,7 +388,9 @@ const Settings = ({navigation}) => {
                   <TouchableOpacity
                     style={styles.infoValueContainer}
                     onPress={() => toggleEdit('favorite_album')}>
-                    <Text style={styles.infoValue}>{userData.favorite_album}</Text>
+                    <Text style={styles.infoValue}>
+                      {userData.favorite_album}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -408,7 +413,9 @@ const Settings = ({navigation}) => {
                   <TouchableOpacity
                     style={styles.infoValueContainer}
                     onPress={() => toggleEdit('favorite_song')}>
-                    <Text style={styles.infoValue}>{userData.favorite_song}</Text>
+                    <Text style={styles.infoValue}>
+                      {userData.favorite_song}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -481,8 +488,7 @@ const Settings = ({navigation}) => {
                 key={option}
                 style={[
                   styles.visibilityOption,
-                  userData.privacy_level === option &&
-                    styles.selectedOption,
+                  userData.privacy_level === option && styles.selectedOption,
                 ]}
                 onPress={() => selectVisibility(option)}>
                 <Text

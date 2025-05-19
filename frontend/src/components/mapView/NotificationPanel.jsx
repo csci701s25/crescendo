@@ -30,7 +30,7 @@ const NotificationPanel = ({isVisible, onClose}) => {
         {
           id: '1',
           follower_id: 'user1',
-          follower_name: 'John Doe',
+          follower_name: 'John',
           follower_image: 'https://i.pravatar.cc/150?img=8',
           request_type: 'close_friend',
           request_status: 'pending',
@@ -41,7 +41,7 @@ const NotificationPanel = ({isVisible, onClose}) => {
         {
           id: '2',
           follower_id: 'user2',
-          follower_name: 'Jane Smith',
+          follower_name: 'An A.',
           follower_image: 'https://i.pravatar.cc/150?img=3',
           request_type: 'close_friend',
           request_status: 'pending',

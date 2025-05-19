@@ -17,8 +17,11 @@ import MapGlobal from './frontend/src/components/mapView/MapGlobal';
 import Settings from './frontend/src/components/mapView/Settings';
 import MessagesScreen from './frontend/src/components/messages/MessagesScreen';
 import DiscoverScreen from './frontend/src/components/discover/DiscoverScreen';
-import {StyleSheet, View} from 'react-native';
-import { authService } from './frontend/src/services/spotifyAuth';
+import OnboardingScreen from './frontend/src/screens/OnboardingScreen';
+import {authService} from './frontend/src/services/spotifyAuth';
+
+import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
+
 import {Ionicons, FontAwesome} from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
@@ -102,54 +105,23 @@ const TabNavigator = () => {
 
 // A simple dummy component we can use if needed
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
-
-  // // Check if user is already authenticated... skip login screen // TODO: uncomment for demo to show login process
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       // If no refresh token, user has never been authenticated
-  //       const refreshToken = await SecureStore.getItemAsync('refreshToken');
-  //       console.log('refreshToken', refreshToken);
-  //       if (!refreshToken) {
-  //         setIsAuthenticated(false);
-  //         return;
-  //       }
-
-  //       // Try to get a valid access token using refresh token
-  //       const accessToken = await authService.getValidAccessToken(refreshToken);
-  //       setIsAuthenticated(!!accessToken);
-  //     } catch (error) {
-  //       console.error('Error checking authentication:', error);
-  //       setIsAuthenticated(false);
-  //     }
-  //   };
-  //   checkAuth();
-  // }, []);
-
-  // Function to be called when splash animation completes
-  const handleAnimationComplete = () => {
-    console.log('App received animation complete signal');
-    setIsLoading(false);
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <SplashScreen onAnimationComplete={handleAnimationComplete} />
-      </View>
-    );
-  }
-
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={'LoginScreen'}
+        initialRouteName="SplashScreen"
         screenOptions={{
           headerShown: false,
         }}>
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen
+          name="SplashScreen"
+          component={SplashScreen}
+          options={{gestureEnabled: false}}
+        />
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          options={{gestureEnabled: false}}
+        />
         <Stack.Screen
           name="MainTabs"
           component={TabNavigator}

@@ -73,6 +73,7 @@ const MapGlobal = ({navigation, route}) => {
   const [searchType, setSearchType] = useState('Songs');
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
+
   // Fixed radius (5km)
   const circleRadius = 5000;
   const [isMapReady, setIsMapReady] = useState(false);
