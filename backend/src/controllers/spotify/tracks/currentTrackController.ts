@@ -29,6 +29,7 @@ export class CurrentTrackController {
             }
 
             const accessToken = data.provider_data.access_token;
+            console.log('accessToken', accessToken);
 
             this.currentTrackService.startPollingCurrentTrack(userId, accessToken);
             res.json({ success: true, message: 'Started polling for currently playing track' });

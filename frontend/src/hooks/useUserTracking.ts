@@ -30,7 +30,7 @@ export const useUserTracking = (isAuthenticated: boolean) => {
             return;
             }
 
-            // Get initial location and setup tracking
+            // Get initial location and setup music tracking
             const initialLocation = await Location.getCurrentPositionAsync({});
             console.log('initialLocation', initialLocation); // TODO: check why not being updated in DB
             await userTrackingService.setupTracking(userId, initialLocation);
@@ -40,7 +40,7 @@ export const useUserTracking = (isAuthenticated: boolean) => {
                 {accuracy: Location.Accuracy.Highest},
                 async (activeLocation) => {
                 // Update location in DB
-                await userTrackingService.updateLocation(userId, activeLocation); // TODO: Implement this
+                await userTrackingService.updateLocation(userId, activeLocation);
                 }
             );
 

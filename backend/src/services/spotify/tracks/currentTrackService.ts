@@ -36,7 +36,9 @@ export class CurrentTrackService {
     startPollingCurrentTrack(userId: string, accessToken: string) {
         this.stopPollingCurrentTrack(userId);
 
-        const POLLING_INTERVAL = 60000; // 60 seconds
+        console.log('starting polling for current track'); // Not getting in here
+
+        const POLLING_INTERVAL = 5000; // 5 seconds
 
         const intervalId = setInterval(async () => {
             try {
@@ -76,8 +78,7 @@ export class CurrentTrackService {
         if (track.type === 'track') {
             const { error } = await supabase
                 .from('current_user_states')
-                .upsert({
-                    id: userId,
+                .update({
                     current_track_id: track.id,
                     track_name: track.name,
                     artist_name: track.artists.map(artist => artist.name).join(', '),
@@ -85,9 +86,8 @@ export class CurrentTrackService {
                     album_image_url: track.album.images?.[0]?.url,
                     is_playing: trackData.is_playing,
                     updated_at: new Date().toISOString(),
-                }, {
-                    onConflict: 'id',
-                });
+                })
+                .eq('id', userId);
 
             if (error) {
                 console.error('Error updating current track:', error);

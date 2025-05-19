@@ -17,6 +17,8 @@ export class UserCurrentStateController {
                 res.status(404).json({ error: 'User state not found' });
             }
 
+            //TODO: change location to lat and long
+
             res.json(userState);
         } catch (error) {
             res.status(500).json({ error: 'Failed to get user state' });
@@ -25,6 +27,7 @@ export class UserCurrentStateController {
 
     upsertUserState = async (req: Request, res: Response) => {
         try {
+            console.log('upserting user state');
             const { userId } = req.params;
             const userStateData = req.body;
 
@@ -42,15 +45,17 @@ export class UserCurrentStateController {
 
     getPublicUsers = async (req: Request, res: Response) => {
         try {
-            const { longitude, latitude, radius, maxResults } = req.query;
+            console.log('!!!!!!!!!!!!getting Public users in controller!!!');
+            const { userId, longitude, latitude, radius, maxResults } = req.query;
 
             const publicUsers = await this.userCurrentStateService.getPublicUsers(
+                userId as string,
                 Number(longitude), // Number() is alternative to parseFloat and +operator
                 Number(latitude),
                 Number(radius),
                 maxResults ? Number(maxResults) : undefined // If undefined, use default value
             );
-
+            console.log('publicUsers!!!', publicUsers);
             res.json(publicUsers);
         } catch (error) {
             res.status(500).json({ error: 'Failed to get public users' });

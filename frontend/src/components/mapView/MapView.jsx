@@ -27,6 +27,7 @@ import listenersData from '../../data/listeners.json';
 import {FontAwesome5} from '@expo/vector-icons';
 
 import { useUserStates } from '../../hooks/useUserStates.ts';
+import { useUserTracking } from '../../hooks/useUserTracking.ts';
 
 
 // Icon components
@@ -69,7 +70,9 @@ const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
 const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
 const MapScreen = ({navigation}) => {
-  const { me, friends } = useUserStates('public');
+
+  useUserTracking(true);
+  const { me, friends } = useUserStates('friends');
 
   const [location, setLocation] = useState({
     latitude: me?.latitude || 37.7749,
