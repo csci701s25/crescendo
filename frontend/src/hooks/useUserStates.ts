@@ -6,7 +6,7 @@ import { userTrackingService } from '../services/userTrackingService';
 // Hook for fetching user states (public or friends view)
 export const useUserStates = (view: 'public' | 'friends') => {
   const [users, setUsers] = useState([]);
-  const [me, setMe] = useState(null);
+  const [me, setMe] = useState({});
 
   useEffect(() => {
 
@@ -19,14 +19,18 @@ export const useUserStates = (view: 'public' | 'friends') => {
         }
 
         // Fetch my state
+        console.log('fetching my state, i am ', userId);
         const myStateData = await userTrackingService.getUserState(userId);
         console.log('myStateData', myStateData);
+        console.log('did it set me?,', myStateData);
         setMe(myStateData);
 
         // Fetch users (public or friends)
+        console.log('trying to fetch users, public or friends!!!');
+        console.log('myStateData', myStateData);
         const data =
           view === 'public'
-            ? await userTrackingService.getPublicUsers(myStateData.longitude, myStateData.latitude, 1000)
+            ? await userTrackingService.getPublicUsers(userId, myStateData.longitude, myStateData.latitude, 1000)
             : await userTrackingService.getCloseFriends(userId, myStateData.longitude, myStateData.latitude, 1000);
 
         setUsers(data);
@@ -38,32 +42,32 @@ export const useUserStates = (view: 'public' | 'friends') => {
     // Initial fetch
     fetchUsers();
 
-    // // Temporarily set up polling instead of Supabase subscription
-    // const interval = setInterval(fetchUsers, 5000); // Poll every 5 seconds
+    // TODO: Look into Supabase subscription instead of polling - BUT THIS FIXED MAP persistence RELOAD ISSUE
+    const interval = setInterval(fetchUsers, 5000); // Poll every 5 seconds
 
-    // return () => clearInterval(interval);
+    return () => clearInterval(interval);
 
     // Set up real-time subscription
-    const subscription = supabase
-      .channel('user_states')
-      .on(
-        'postgres_changes',
-        {
-            event: '*', // INSERT, UPDATE, DELETE
-            schema: 'public',
-            table: 'current_user_states',
-        },
-        () => {
-            // Refetch users when a change is detected in DB
-            fetchUsers();
-        }
-      )
-      .subscribe();
+    // const subscription = supabase
+    //   .channel('user_states')
+    //   .on(
+    //     'postgres_changes',
+    //     {
+    //         event: '*', // INSERT, UPDATE, DELETE
+    //         schema: 'public',
+    //         table: 'current_user_states',
+    //     },
+    //     () => {
+    //         // Refetch users when a change is detected in DB
+    //         fetchUsers();
+    //     }
+    //   )
+    //   .subscribe();
 
     // UseEffect cleanup
-    return () => {
-      subscription.unsubscribe();
-    };
+    // return () => {
+    //   subscription.unsubscribe();
+    // };
   }, [view]);
 
   return { me, users };

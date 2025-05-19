@@ -21,17 +21,15 @@ export class UserCurrentStateService {
      */
     async getUserState(userId: string): Promise<UserCurrentState[]> {
         const { data: state, error } = await supabase
-            .from('current_user_states')
-            .select('*')
-            .eq('id', userId)
-            .single();
+        .rpc('get_user_state', { user_id: userId });
 
         if (error) {
-            // TODO: keep adding console.errors everywhere -- really helps with debugging
+            // TODO: keep adding console.errors everywhere -- really helps with debugging!
             console.error('Error in getUserState:', error);
-           throw error;
+            throw error;
         }
-        return state;
+
+        return state[0];
     }
 
     /**
@@ -64,9 +62,16 @@ export class UserCurrentStateService {
     /**
      * GET method - Public View: @returns all users within given radius around a given location
      */
-    async getPublicUsers(longitude: number, latitude: number, radius: number, maxResults: number = 50): Promise<UserCurrentState[]> {
+    async getPublicUsers(userId: string, longitude: number, latitude: number, radius: number, maxResults: number = 50): Promise<UserCurrentState[]> {
+        console.log('getting public users in service!!!');
+        console.log('userId', userId);
+        console.log('longitude', longitude);
+        console.log('latitude', latitude);
+        console.log('radius', radius);
+        console.log('maxResults', maxResults);
         const { data: nearbyUsers, error: publicError } = await supabase
             .rpc('get_nearby_user_states', {
+                user_id: userId,
                 longitude,
                 latitude,
                 radius_miles: radius,
@@ -74,9 +79,9 @@ export class UserCurrentStateService {
             });
 
         if (publicError) {
+            console.error('Error in getPublicUsers:', publicError);
             throw publicError;
         }
-
         return nearbyUsers;
     }
 

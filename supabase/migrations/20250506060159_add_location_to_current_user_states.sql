@@ -30,13 +30,8 @@ CREATE INDEX current_user_states_geo_index
   ON public.current_user_states
   USING GIST (location);
 
--- Public View: Get nearby user states within a given radius // TODO: test
-CREATE OR REPLACE FUNCTION get_nearby_user_states(
-    longitude float,
-    latitude float,
-    radius_miles float DEFAULT 1, -- Match Default to frontend, for now it's 1 mile
-    max_results int DEFAULT 50 -- Match Default to frontend, for now it's 50
-)
+-- Fetch user state given id
+CREATE OR REPLACE FUNCTION get_user_state(user_id uuid)
 RETURNS TABLE (
     id UUID,
     current_track_id TEXT,
@@ -64,11 +59,56 @@ AS $$
         gis.st_y(location::gis.geometry) as latitude,
         updated_at
     FROM current_user_states
+    WHERE id = user_id;
+$$;
+
+-- Public View: Get nearby user states within a given radius // TODO: test
+CREATE OR REPLACE FUNCTION get_nearby_user_states(
+    user_id UUID,
+    longitude float,
+    latitude float,
+    radius_miles float DEFAULT 1, -- Match Default to frontend, for now it's 1 mile
+    max_results int DEFAULT 50 -- Match Default to frontend, for now it's 50
+)
+RETURNS TABLE (
+    id UUID,
+    current_track_id TEXT,
+    track_name TEXT,
+    artist_name TEXT,
+    album_name TEXT,
+    album_image_url TEXT,
+    is_playing BOOLEAN,
+    longitude float,
+    latitude float,
+    updated_at timestamptz,
+    display_name TEXT,
+    profile_image_url TEXT
+)
+SET search_path = 'public'
+LANGUAGE sql
+AS $$
+    SELECT 
+        cus.id,
+        cus.current_track_id,
+        cus.track_name,
+        cus.artist_name,
+        cus.album_name,
+        cus.album_image_url,
+        cus.is_playing,
+        gis.st_x(location::gis.geometry) as longitude, -- typecast from geography to geometry in following with docs
+        gis.st_y(location::gis.geometry) as latitude,
+        cus.updated_at,
+        user_profiles.display_name,
+        user_profiles.profile_image_url
+    FROM current_user_states cus
+    INNER JOIN user_profiles ON cus.id = user_profiles.id -- To add display name and profile image url to response
     WHERE gis.st_dwithin( -- Useful for radius queries
-        location::gis.geometry, 
-        gis.st_point(longitude, latitude)::gis.geometry, 
+        location::gis.geography, 
+        gis.st_point(longitude, latitude)::gis.geography, 
         radius_miles * 1609.34 -- Convert miles to meters as it's expected by ST_DWithin
     )
+    AND user_profiles.privacy_level = 'everyone' -- Only show users who set their privacy level to everyone
+    AND cus.id != user_id -- Don't show the current user in results
     ORDER BY location operator(gis.<->) gis.st_point(longitude, latitude)::gis.geography
     LIMIT max_results;
 $$;

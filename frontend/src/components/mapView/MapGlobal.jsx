@@ -21,6 +21,7 @@ import {
   Feather,
 } from '@expo/vector-icons';
 import { useUserStates } from '../../hooks/useUserStates.ts';
+import { useUserTracking } from '../../hooks/useUserTracking.ts';
 import listenersData from '../../data/listeners.json';
 import SearchBar from './SearchBar';
 
@@ -60,13 +61,29 @@ const COLLAPSED_HEIGHT = height * 0.3; // 30% of screen height
 const EXPANDED_HEIGHT = height * 0.7; // 70% of screen height
 
 const MapGlobal = ({navigation, route}) => {
+  // Set up user tracking and grab nearby users
+  useUserTracking(true);
   const { users, me } = useUserStates('public');
 
+  console.log('me', me);
+
   // State for center location
-  const [location, setLocation] = useState({
-    latitude: me?.latitude || 37.7749,
-    longitude: me?.longitude || -122.4194,
-  });
+  const [location, setLocation] = useState(null);
+
+  // Update map region once user location is fetched - gotta fix
+  useEffect(() => {
+    if (me?.latitude && me?.longitude) {
+      console.log('Location effect triggered');
+      const newRegion = {
+        latitude: me.latitude,
+        longitude: me.longitude,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
+      };
+      setLocation(newRegion);
+    }
+  }, [me?.latitude, me?.longitude]);
+
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,7 +130,7 @@ const MapGlobal = ({navigation, route}) => {
   };
 
   // Filter nearby users based search based on song, artist
-  // TODO: For ppl we woudl need to use current_user_states id to get the user's displayname from user_profiles table
+  // TODO: For ppl we would need to use current_user_states id to get the user's displayname from user_profiles table
   const filteredListeners = users.filter(listener => {
     if (!searchQuery.trim()) {
       return true;
@@ -170,49 +187,53 @@ const MapGlobal = ({navigation, route}) => {
 
       {/* Full Screen Map */}
       <View style={styles.mapContainer}>
-        <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: location.latitude,
-            longitude: location.longitude,
-            latitudeDelta: 0.1,
-            longitudeDelta: 0.1,
-          }}
-          onMapReady={onMapReady}>
-          {/* User Location Indicator */}
-          <Marker
-            coordinate={location}
-            title="Music Zone"
-            description="Center of your music zone">
-            <View style={styles.centerMarkerContainer}>
-              <View style={styles.centerMarker} />
-            </View>
-          </Marker>
-
-          {/* Circle showing fixed radius */}
-          <Circle
-            center={location}
-            radius={circleRadius}
-            fillColor="rgba(57, 162, 174, 0.15)"
-            strokeColor="rgba(57, 162, 174, 0.5)"
-            strokeWidth={2}
-          />
-
-          {/* Display music listeners from JSON */}
-          {filteredListeners.map(listener => (
+        {location ? (
+          <MapView
+            style={styles.map}
+            region={location}
+            onMapReady={onMapReady}>
+            {/* User Location Indicator */}
             <Marker
-              key={listener.id}
-              coordinate={listener.location}
-              // title={listener.display} // TODO: need info from user_profiles table
-              description={`Listening to ${listener.song_name}`}>
-              <View style={styles.listenerMarkerContainer}>
-                <View style={styles.listenerMarker}>
-                  <MusicIcon color="#fff" size={16} />
-                </View>
+              coordinate={location}
+              title="Music Zone"
+              description="Center of your music zone">
+              <View style={styles.centerMarkerContainer}>
+                <View style={styles.centerMarker} />
               </View>
             </Marker>
-          ))}
+
+            {/* Circle showing fixed radius */}
+            <Circle
+              center={location}
+              radius={circleRadius}
+              fillColor="rgba(57, 162, 174, 0.15)"
+              strokeColor="rgba(57, 162, 174, 0.5)"
+              strokeWidth={2}
+            />
+
+            {/* Display music listeners from JSON */}
+            {filteredListeners.map(listener => (
+              <Marker
+                key={listener.id}
+                coordinate={{
+                  latitude: listener.latitude,
+                  longitude: listener.longitude,
+                }}
+                title={listener.display_name}
+                description={`Listening to ${listener.track_name}`}>
+                <View style={styles.listenerMarkerContainer}>
+                  <View style={styles.listenerMarker}>
+                    <MusicIcon color="#fff" size={16} />
+                  </View>
+                </View>
+              </Marker>
+            ))}
         </MapView>
+        ) : (
+          <View style={[styles.map]}>
+            <Text>Loading map...</Text>
+          </View>
+        )}
       </View>
 
       {/* Conditional Rendering: Show either Search Results or Bottom Sheet */}
@@ -242,9 +263,9 @@ const MapGlobal = ({navigation, route}) => {
                   {/* User icon and name */}
                   <View style={styles.userSection}>
                     <View style={styles.profileImageContainer}>
-                      <UserIcon color="#fff" size={28} />
+                      <Image source={{uri: item.profile_image_url}}/>
                     </View>
-                    <Text style={styles.profileName}>{item.username}</Text>
+                    <Text style={styles.profileName}>{item.display_name}</Text>
                   </View>
 
                   {/* Currently listening section */}
@@ -293,15 +314,13 @@ const MapGlobal = ({navigation, route}) => {
             {filteredListeners.map((listener, index) => (
               <View key={listener.id} style={styles.listItem}>
                 <View style={styles.listItemLeft}>
-                  <View style={styles.smallProfileImage}>
-                    <UserIcon color="#fff" size={18} />
-                  </View>
+                  <Image source={{uri:listener.profile_image_url}} style={styles.smallProfileImage}/> {/* Profile Image */}
                   <View style={styles.listItemTextContainer}>
-                    {/* <Text style={styles.listItemName}>{listener.username}</Text> - need info from user_profiles table */}
+                    <Text style={styles.listItemName}>{listener.display_name}</Text>
                     <View style={styles.listItemSongContainer}>
                       <MusicIcon color={SUNSET_ORANGE} size={14} />
                       <Text style={styles.listItemSong} numberOfLines={1}>
-                        {listener.song_name}
+                        {listener.track_name}
                       </Text>
                     </View>
                   </View>

@@ -9,7 +9,8 @@ export const userTrackingService = {
         await userTrackingService.updateLocation(userId, initialLocation);
 
         // Start backend polling for current track
-        await fetch(`${API_BASE_URL}/api/tracks/spotify/currentTrack/startPolling/${userId}`, {
+        console.log('starting backend polling for current track w/ user id', userId); // Not getting in here
+        await fetch(`${API_BASE_URL}/api/tracks/spotify/startPolling/${userId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -46,13 +47,17 @@ export const userTrackingService = {
     },
 
     // Public view: Get all users within given radius given current user's location
-    getPublicUsers: async (longitude: number, latitude: number, radius: number = 1000, maxResults?: number) => {
+    getPublicUsers: async (userId: string, longitude: number, latitude: number, radius: number = 1000, maxResults?: number) => {
+        console.log('getting public users, about to hit endpoint!!!');
         const queryParams = new URLSearchParams({
+            userId: userId,
             longitude: longitude.toString(),
             latitude: latitude.toString(),
             radius: radius.toString(),
             ...(maxResults && { maxResults: maxResults.toString() }),
         });
+
+        console.log('queryParams', queryParams.toString()); // hmm - why is this empty?
 
         const response = await fetch(`${API_BASE_URL}/api/states/public?${queryParams}`);
         if (!response.ok) {
