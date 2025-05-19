@@ -68,7 +68,7 @@ In the ```.env``` file, copy and paste:
 ```
 # Local Supabase (DB) credentials
 SUPABASE_URL=http://localhost:54321
-SUPABASE_ANON_KEY=YOUR_ANON_KEY (will see how to get from tutorial)
+SUPABASE_ANON_KEY=YOUR_ANON_KEY (will see how to get yours from the tutorial)
 
 # Spotify API credentials
 SPOTIFY_CLIENT_ID=ac244bca6e2940e4bc0fd936c2f537af
@@ -79,12 +79,33 @@ SPOTIFY_TEST_REFRESH_TOKEN=AQC5dftVZk1PVy_cWO3Ib0chEc64gvn017rgfz80eH9X43hRXIlId
 # Port configuration
 PORT=3000
 ```
-**_NOTE:_** After running npm run start on the root folder, launch with your preferred simulator and proceed with authenticate, check the console log to see your Redirect URI and report it to any of the original devs as it must be added to the Spotify Dashboard associated with the Crescendo app.
+
+### Root folder (crescendo) environment files
+
+Inside the root folder (crescendo), create a ```.env``` with:
+```
+EXPO_PUBLIC_API_URL =  http://localhost:3000 
+EXPO_PUBLIC_SUPABASE_URL=http://localhost:54321
+EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY (will see how to get yours from the tutorial)
+```
+
+To run our app in local dev mode:
+* Open 2 terminals
+* In one of the two terminals ```cd backend```
+* Then in the terminal in ```backend``` directory, run: ```npm run dev```
+* Then in the terminal in root ```crescendo``` directory, run: ```npm start```
+* Then, press ```i``` to run on IOS or ```a``` to run on Android
+**_NOTE:_** If you want to run the app on your phone:
+  On macOS run ```ipconfig getifaddr en0``` to get your IP
+  On Windows run ```ipconfig | findstr IPv4``` to get your IP
+  Then in the root folder's ```.env``` file, change ```http://localhost:3000``` to ```http://YOUR_IP:3000```
+
+
+**_NOTE:_** Check the console log to see your Redirect URI and report it to any of the original devs as it must be added to the Spotify Dashboard associated with the Crescendo app.
 
 
 # Examples
 
--- TODO: make a vid w/ all the features!!
 
 # Acknowledgements
 We would like to thank Professor [Philip Caplan](https://www.middlebury.edu/college/people/philip-caplan) for his guidance throughout the semester, especially regarding the ethical considerations of our project and the effective communication techniques to pitch our project and provide progress updates. 
